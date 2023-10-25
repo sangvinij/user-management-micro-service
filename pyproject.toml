@@ -29,7 +29,23 @@ flake8-mutable = "^1.2.0"
 flake8-print = "^5.0.0"
 flake8-quotes = "^3.3.2"
 flake8-simplify = "^0.21.0"
-flake8-import-order = "^0.18.2"
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '^.+\.pyi?$'
+extend-exclude = '''
+(
+    .*\.idea.*
+    | .*\.vscode.*
+    | .*\.git.*
+)
+'''
+
+[tool.isort]
+line_length = 120
+profile = "black"
+
 
 [build-system]
 requires = ["poetry-core"]
