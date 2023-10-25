@@ -1,0 +1,13 @@
+[flake8]
+ignore = S101, S105, S106, B101, W503, Q000, E402, JS101, JS102
+per-file-ignores =
+    project/accounts/schemas.py: A003
+max-line-length = 120
+
+exclude =
+    .artifacts
+    .git
+    .idea
+    .local
+    .venv
+    .vscode
