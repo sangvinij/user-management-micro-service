@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from project.env_config import env
+from user_management.env_config import env
 
 app = FastAPI()
 
