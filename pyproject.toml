@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "user-management-micro-service"
+version = "0.1.0"
+description = ""
+authors = ["Artyom Vorozhbyanov <artyom.vorozhbyanov@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.10.11"
+sqlalchemy = "2.0.22"
+alembic = "1.12.0"
+fastapi = "0.104.0"
+uvicorn = "0.23.2"
+asyncpg = "0.28.0"
+pydantic-settings = "2.0.3"
+pyjwt = "2.8.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "23.10.1"
+isort = "5.12.0"
+flake8 = "6.1.0"
+flake8-builtins = "2.1.0"
+flake8-bandit = "4.1.1"
+flake8-comprehensions = "3.14.0"
+flake8-fixme = "1.1.1"
+flake8-multiline-containers = "0.0.19"
+flake8-mutable = "1.2.0"
+flake8-print = "5.0.0"
+flake8-quotes = "3.3.2"
+flake8-simplify = "0.21.0"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+include = '^.+\.pyi?$'
+extend-exclude = '''
+(
+    .*\.idea.*
+    | .*\.vscode.*
+    | .*\.git.*
+)
+'''
+
+[tool.isort]
+line_length = 120
+profile = "black"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
