@@ -12,7 +12,7 @@ async def healthcheck():
     return JSONResponse(status_code=200, content={"status": "healthy"})
 
 
-origins = env.ALLOWED_HOSTS.split(",")
+origins = env.ALLOWED_HOSTS
 
 app.add_middleware(
     CORSMiddleware,

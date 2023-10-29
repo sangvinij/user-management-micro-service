@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from user_management.env_config import env
 
-engine = create_async_engine(env.DATABASE_URL, echo=True)
+engine = create_async_engine(
+    f"{env.DB_ENGINE}://{env.DB_USER}:{env.DB_PASSWORD}@{env.DB_HOST}:{env.DB_PORT}/{env.DB_NAME}", echo=True
+)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 

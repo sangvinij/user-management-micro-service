@@ -1,8 +1,8 @@
 """01_initial
 
-Revision ID: 478c7a75fad7
+Revision ID: 0c2c01786663
 Revises:
-Create Date: 2023-10-26 23:25:50.704385
+Create Date: 2023-10-29 16:28:58.818180+03:00
 
 """
 from typing import Optional, Sequence, Union
@@ -10,7 +10,7 @@ from typing import Optional, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "478c7a75fad7"
+revision: str = "0c2c01786663"
 down_revision: Optional[str] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
