@@ -13,5 +13,11 @@ class Settings(BaseSettings):
     DB_NAME: str
     ALLOWED_HOSTS: List[str] = ["*"]
 
+    @property
+    def db_url(self) -> str:
+        return f"{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-env = Settings()
+
+config = Settings()
+
+print(config.ALLOWED_HOSTS)

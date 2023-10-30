@@ -1,4 +1,3 @@
-import enum
 import uuid
 from datetime import datetime
 
@@ -24,7 +23,7 @@ class User(Base):
     modified_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now())
 
     group_id: Mapped[int] = mapped_column(ForeignKey("group.group_id"))
-    role_name: Mapped[enum.Enum] = mapped_column(ForeignKey("role.role_name"))
+    role_id: Mapped[int] = mapped_column(ForeignKey("role.role_id"))
 
     role = relationship("Role", back_populates="user", uselist=False)
     group = relationship("Group", back_populates="user", uselist=False)

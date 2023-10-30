@@ -1,8 +1,8 @@
 """01_initial
 
-Revision ID: 0c2c01786663
+Revision ID: 659a17349c0d
 Revises:
-Create Date: 2023-10-29 16:28:58.818180+03:00
+Create Date: 2023-10-30 13:32:26.545108+03:00
 
 """
 from typing import Optional, Sequence, Union
@@ -10,7 +10,7 @@ from typing import Optional, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0c2c01786663"
+revision: str = "659a17349c0d"
 down_revision: Optional[str] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -27,8 +27,9 @@ def upgrade() -> None:
     )
     op.create_table(
         "role",
+        sa.Column("role_id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("role_name", sa.Enum("USER", "ADMIN", "MODERATOR", name="user_role"), nullable=False),
-        sa.PrimaryKeyConstraint("role_name"),
+        sa.PrimaryKeyConstraint("role_id"),
     )
     op.create_table(
         "user",
@@ -44,14 +45,14 @@ def upgrade() -> None:
         sa.Column("created_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("modified_at", sa.TIMESTAMP(), nullable=False),
         sa.Column("group_id", sa.Integer(), nullable=False),
-        sa.Column("role_name", sa.Enum("USER", "ADMIN", "MODERATOR", name="user_role"), nullable=False),
+        sa.Column("role_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["group_id"],
             ["group.group_id"],
         ),
         sa.ForeignKeyConstraint(
-            ["role_name"],
-            ["role.role_name"],
+            ["role_id"],
+            ["role.role_id"],
         ),
         sa.PrimaryKeyConstraint("user_id"),
         sa.UniqueConstraint("email"),

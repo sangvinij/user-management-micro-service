@@ -6,8 +6,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from user_management.config import config as conf
 from user_management.database.models.base import Base
-from user_management.env_config import env
 
 config = context.config
 
@@ -15,7 +15,7 @@ section = config.config_ini_section
 config.set_section_option(
     section,
     "DATABASE_URL",
-    f"{env.DB_ENGINE}://{env.DB_USER}:{env.DB_PASSWORD}@{env.DB_HOST}:{env.DB_PORT}/{env.DB_NAME}",
+    conf.db_url,
 )
 
 if config.config_file_name is not None:

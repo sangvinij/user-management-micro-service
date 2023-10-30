@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 
-from user_management.env_config import env
+from user_management.config import config
 
 app = FastAPI()
 
@@ -12,7 +12,7 @@ async def healthcheck():
     return JSONResponse(status_code=200, content={"status": "healthy"})
 
 
-origins = env.ALLOWED_HOSTS
+origins = config.ALLOWED_HOSTS
 
 app.add_middleware(
     CORSMiddleware,
