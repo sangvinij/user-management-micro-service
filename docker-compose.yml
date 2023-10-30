@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+
+  db:
+    container_name: bookstore.db
+    image: postgres:16.0
+    networks:
+      - user_management
+    restart: always
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - .local/services/db:/var/lib/postgresql/data
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  webapp:
+    build:
+      args:
+        - PIP_VERSION=${WEBAPP_PIP_VERSION:-23.3.1}
+        - POETRY_VERSION=${WEBAPP_POETRY_VERSION:-1.6.1}
+        - PYTHON_VERSION=${WEBAPP_PYTHON_VERSION:-3.10.12}
+        - VERSION=${WEBAPP_VERSION:-dev}
+      context: .
+    container_name: user_management.webapp
+    image: user_management_webapp:latest
+    env_file:
+      - .env
+    networks:
+      - user_management
+    ports:
+      - "8000:8000"
+    volumes:
+      - .local/services/webapp:/app/:ro
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+
+networks:
+  user_management:
+    name: user_management.network
+    driver: bridge
