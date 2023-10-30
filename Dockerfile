@@ -10,7 +10,7 @@ RUN useradd -ms /bin/bash newuser && \
     pip install poetry
 
 # Copy pyproject.toml and poetry.lock to install dependencies
-WORKDIR /app
+WORKDIR /project
 COPY pyproject.toml poetry.lock ./
 
 # Installing dependencies to system python
@@ -20,10 +20,13 @@ RUN poetry config virtualenvs.create false && \
 # Сopy the remaining files
 COPY . .
 
+# Runing the file as an executable script
 RUN chmod +x scripts/entrypoint_webapp.sh
 
+# Changing user 
 USER newuser
 
+# Launching the script
 ENTRYPOINT [ "scripts/entrypoint_webapp.sh" ]
 
 # Checking health status
