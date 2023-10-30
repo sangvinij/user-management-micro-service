@@ -20,11 +20,11 @@ RUN poetry config virtualenvs.create false && \
 # Сopy the remaining files
 COPY . .
 
-RUN chmod +x scripts/entrypoint.sh
+RUN chmod +x scripts/entrypoint_webapp.sh
 
 USER newuser
 
-ENTRYPOINT [ "scripts/entrypoint.sh" ]
+ENTRYPOINT [ "scripts/entrypoint_webapp.sh" ]
 
 # Checking health status
 HEALTHCHECK --interval=3s --timeout=10s --start-period=15s --retries=5 \
