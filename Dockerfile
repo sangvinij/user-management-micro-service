@@ -21,6 +21,3 @@ RUN chmod +x scripts/entrypoint_webapp.sh
 USER newuser
 
 ENTRYPOINT [ "scripts/entrypoint_webapp.sh" ]
-
-HEALTHCHECK --interval=3s --timeout=10s --start-period=15s --retries=5 \
-  CMD curl -f http://localhost:8000/healthcheck || exit 1

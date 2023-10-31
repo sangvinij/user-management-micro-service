@@ -33,6 +33,12 @@ tasks:
     desc: migrate db
     run: once
 
+  run-tests:
+    cmds:
+      - poetry run pytest -s
+    desc:
+      run tests
+
 vars:
   PIP_VERSION:
     sh: cat .env | grep PIP_VERSION | sed -e 's/^.*=//g'
