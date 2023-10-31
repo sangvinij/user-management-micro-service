@@ -28,12 +28,12 @@ To run this project locally, first of all make sure that you have `python 3.10.1
 1. Make sure that you've got database available.
 2. Make steps 2 - 4 of the instruction [above](#run-via-docker-compose).
 
-3. If have [Task](https://taskfile.dev/) installed:
+3. If you have [Task](https://taskfile.dev/) installed:
  - Setup environment by running `task build`
  - Apply migrations by running `task db-migrate`
  - Start development server by running `task run-server`
 
-4. if you haven't [Task](https://taskfile.dev/) installed:
+4. If you haven't [Task](https://taskfile.dev/) installed:
  - Install `poetry v1.6.1` by running `pip install poetry==1.6.1`. 
  - Create and activate virtual environment by running `poetry shell`. 
  - Install dependencies by running `poetry install`. 
