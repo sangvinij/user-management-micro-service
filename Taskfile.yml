@@ -16,9 +16,9 @@ tasks:
 
   build:
     cmds:
-      - pip install --upgrade "pip==23.3.1"
-      - pip install --upgrade "poetry==1.6.1"
-      - poetry env use python3.10
+      - pip install --upgrade pip=={{.PIP_VERSION}}
+      - pip install --upgrade poetry=={{.POETRY_VERSION}}
+      - poetry env use {{.PYTHON_VERSION}}
       - poetry install
     desc: setup toolchain
 
@@ -32,3 +32,11 @@ tasks:
       - poetry run alembic upgrade head
     desc: migrate db
     run: once
+
+vars:
+  PIP_VERSION:
+    sh: cat .env | grep PIP_VERSION | sed -e 's/^.*=//g'
+  POETRY_VERSION:
+    sh: cat .env | grep POETRY_VERSION | sed -e 's/^.*=//g'
+  PYTHON_VERSION:
+    sh: cat .env | grep PYTHON_VERSION | sed -e 's/^.*=//g'
