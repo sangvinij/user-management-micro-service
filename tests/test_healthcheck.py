@@ -1,6 +1,6 @@
 import pytest
-
 from httpx import AsyncClient
+
 from user_management.config import config
 
 
