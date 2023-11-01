@@ -9,19 +9,30 @@
 * ***[Running tests](#running-tests)***
 
 ## Software versions
-- python: 3.10.12
-- PIP_VERSION: 23.3.1
-- POETRY_VERSION: 1.6.1
+- Python: 3.10.12
+- Pip: 23.3.1
+- Poetry: 1.6.1
 
 ## Getting started
 ### Run via Docker Compose
 To run this project, follow the steps below:
 1. Install [Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/) on your computer if they are not already installed.
-2. Clone the repository to your local machine.
-3. Navigate to the root directory of the project.
+2. Clone the repository to your local machine
+
+        git clone git@github.com:sangvinij/user-management-micro-service.git
+3. Navigate to the root directory of the project
+
+        cd user-management-micro-service
+
+
 4. configure `.env` file by assigning values to the variables defined in `.env.sample`
+
+        cp .env_sample .env
+
  - ***NOTE: The variable values specified in `.env.sample` are just for example. You must configure `.env` file with your own settings***
-5. In the project directory, run `docker compose up` to start the services.
+ 5. Start services
+
+         docker compose up
 
 ### Run locally
 To run this project locally, first of all make sure that you have `python 3.10.12` installed on your machine. Then follow next steps:

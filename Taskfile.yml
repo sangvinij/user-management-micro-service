@@ -1,18 +1,12 @@
 version: '3'
 
 tasks:
-  code-format:
+  lint:
     cmds:
       - poetry run black .
       - poetry run isort .
-    desc: format code with black, isort
-
-  code-lint:
-    cmds:
       - poetry run flake8 .
-      - poetry run black . --check
-      - poetry run isort . --check
-    desc: validate code using linters
+    desc: format and validate code using linters
 
   build:
     cmds:
