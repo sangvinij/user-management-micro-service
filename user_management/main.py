@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from user_management.config import config
 
-app = FastAPI()
+app = FastAPI(docs_url="/")
 
 
 @app.get("/healthcheck")

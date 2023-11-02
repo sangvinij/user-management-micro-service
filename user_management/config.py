@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
+    WEBAPP_TEST_HOST: str
     ALLOWED_HOSTS: List[str] = ["*"]
 
     @property
@@ -19,5 +20,3 @@ class Settings(BaseSettings):
 
 
 config = Settings()
-
-print(config.ALLOWED_HOSTS)

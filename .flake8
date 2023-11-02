@@ -1,10 +1,11 @@
 [flake8]
-ignore = Q000
+ignore = Q000, S101
 max-line-length = 120
 
 exclude =
     .artifacts
     .git
     .idea
+    .local
     .venv
     .vscode
