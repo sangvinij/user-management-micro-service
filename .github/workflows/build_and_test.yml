@@ -1,22 +1,15 @@
 name: build_and_tests
-on:
-  pull_request:
-    branches:
-      - '*'
-  push:
-    branches:
-      - develop
-      - main
+on: pull_request
 
 jobs:
-  build-and-tests:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4.1.1
 
       - name: Setup Python
-        uses: actions/setup-python@v4.5.0
+        uses: actions/setup-python@v4.7.1
 
         with:
           python-version: "3.10.12"
@@ -35,12 +28,9 @@ jobs:
           poetry run isort . --check
           poetry run flake8 .
 
-      - name: Run Flake8
-        run: poetry run flake8 .
-
       - name: Create .env file
         run: |
-          echo "DB_ENGINE"=${{ secrets.DB_ENGINE }}" > .env
+          echo "DB_ENGINE=${{ secrets.DB_ENGINE }}" > .env
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
@@ -48,10 +38,12 @@ jobs:
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
           
           echo "ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}" >> .env
-          echo "WEBAPP_TEST_HOST=${{ secrets.HOST_FOR_TESTS }}" >> .env
+          echo "WEBAPP_TEST_HOST=${{ secrets.WEBAPP_TEST_HOST }}" >> .env
 
-      - name: build
+      - name: Build
         run: docker-compose up --detach
 
-      - name: run tests
-        run: poetry run pytest -s
+      - name: Run tests
+        run: |
+          sleep 5
+          poetry run pytest -s
