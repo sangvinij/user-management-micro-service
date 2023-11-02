@@ -33,6 +33,38 @@ tasks:
     desc:
       run tests
 
+  docker-build:
+    cmds:
+      - docker compose build --no-cache
+    desc: build webapp image
+
+  docker-up:
+    cmds:
+      - docker compose up --detach --remove-orphans
+    desc: start all services
+    run: once
+
+  docker-db-migrate:
+    cmds:
+      - docker compose exec webapp bash
+      - alembic upgrade head
+    desc: migrate db inside container
+    run: once
+
+  docker-down:
+    cmds:
+      - docker compose down --remove-orphans
+    desc: stop all services
+    run: once
+
+  clean:
+    cmds:
+      - docker compose down --remove-orphans || exit 0
+      - rm -rf .local/services
+      - rm -rf .pytest_cache
+    desc: cleans dev environment, removes containers, volumes, caches
+    run: once
+
 vars:
   PIP_VERSION:
     sh: cat .env | grep PIP_VERSION | sed -e 's/^.*=//g'
