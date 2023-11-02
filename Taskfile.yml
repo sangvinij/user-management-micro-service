@@ -37,6 +37,7 @@ tasks:
     cmds:
       - docker compose build --no-cache
     desc: build webapp image
+    run: once
 
   docker-up:
     cmds:
