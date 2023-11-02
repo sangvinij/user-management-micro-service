@@ -47,8 +47,7 @@ tasks:
 
   docker-db-migrate:
     cmds:
-      - docker compose exec webapp bash
-      - alembic upgrade head
+      - docker compose exec webapp alembic upgrade head
     desc: migrate db inside container
     run: once
 
