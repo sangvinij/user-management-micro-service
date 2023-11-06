@@ -33,8 +33,16 @@ services:
       context: .
     container_name: user_management_webapp
     image: user_management_webapp:latest
-    env_file:
-      - .env
+    environment:
+      DB_ENGINE: ${DB_ENGINE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      WEBAPP_TEST_HOST: ${WEBAPP_TEST_HOST}
     networks:
       - user_management
     ports:

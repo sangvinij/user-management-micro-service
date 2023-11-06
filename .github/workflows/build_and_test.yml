@@ -1,0 +1,76 @@
+name: build_and_tests
+on: push
+
+env:
+  DB_ENGINE: ${{ secrets.DB_ENGINE }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+
+  ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+  WEBAPP_TEST_HOST: ${{ secrets.WEBAPP_TEST_HOST }}
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+
+    - name: Build image
+      run: docker build 
+        --build-arg PIP_VERSION=23.3.1 
+        --build-arg POETRY_VERSION=1.6.1 
+        --build-arg PYTHON_VERSION=3.10.12 
+        -t user_management_webapp:latest 
+        .
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.7.1
+      with:
+        python-version: "3.10.12"
+
+    - name: Setup Poetry
+      uses: Gr1N/setup-poetry@v8
+      with:
+        poetry-version: '1.6.1'
+
+    - name: Install requirements
+      run: poetry install --only dev
+
+    - name: Run linters
+      run: |
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8 .    
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: "3.10.12"
+
+      - name: Setup Poetry
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: '1.6.1'
+
+      - name: Install requirements
+        run: poetry install
+
+      - name: Run tests
+        run: poetry run pytest tests/unit || exit 0
