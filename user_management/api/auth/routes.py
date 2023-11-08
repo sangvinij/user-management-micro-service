@@ -22,9 +22,8 @@ async def login(
 ):
     user = await auth_backend.authenticate(username=form_data.username, password=form_data.password, session=session)
 
-    access_token = auth_token.create_access_token(user_id=user.user_id)
-    refresh_token = auth_token.create_refresh_token(user_id=user.user_id)
-    response = LoginModel(access_token=access_token, refresh_token=refresh_token)
+    token_pair = auth_token.create_token_pair(user_id=user.user_id)
+    response = LoginModel(access_token=token_pair["access_token"], refresh_token=token_pair["refresh_token"])
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
 
 
@@ -37,6 +36,6 @@ async def refresh(refresh_token: Annotated[str, Depends(security)]):
 
     response = LoginModel(access_token=tokens["access_token"], refresh_token=tokens["refresh_token"])
 
-    await AuthToken().add_token_to_blacklist(refresh_token)
+    await auth_token.add_token_to_blacklist(refresh_token)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())

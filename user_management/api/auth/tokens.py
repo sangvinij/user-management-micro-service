@@ -41,15 +41,15 @@ class AuthToken:
 
         return jwt_token
 
-    def create_access_token(self, user_id: uuid.UUID):
-        return self._create_token(
+    def create_token_pair(self, user_id: uuid.UUID) -> Dict:
+        access_token = self._create_token(
             jwt_type="access", user_id=str(user_id), expiration_time=self.get_access_token_expiration_time()
         )
-
-    def create_refresh_token(self, user_id: uuid.UUID):
-        return self._create_token(
+        refresh_token = self._create_token(
             jwt_type="refresh", user_id=str(user_id), expiration_time=self.get_refresh_token_expiration_time()
         )
+
+        return {"access_token": access_token, "refresh_token": refresh_token}
 
     @staticmethod
     def check_token_type(token: str, jwt_type: str) -> None:
@@ -97,14 +97,13 @@ class AuthToken:
 
         return verified_token
 
-    async def refresh_token(self, refresh_token):
+    async def refresh_token(self, refresh_token: str) -> Dict:
         verified_token = await self.verify_token(refresh_token, jwt_type="refresh")
-        new_access_token = self.create_access_token(user_id=verified_token["user_id"])
-        new_refresh_token = self.create_refresh_token(user_id=verified_token["user_id"])
+        new_token_pair = self.create_token_pair(user_id=verified_token["user_id"])
 
         await self.add_token_to_blacklist(refresh_token)
 
-        return {"access_token": new_access_token, "refresh_token": new_refresh_token}
+        return new_token_pair
 
 
 auth_token = AuthToken()
