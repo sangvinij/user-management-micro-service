@@ -10,7 +10,7 @@ from ...database.db_settings import get_async_session
 from .backends import auth_backend
 from .exceptions import TokenError
 from .schemas import LoginModel
-from .tokens import AuthToken, auth_token
+from .tokens import auth_token
 
 security = OAuth2PasswordBearer(tokenUrl="auth/login")
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
