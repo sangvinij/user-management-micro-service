@@ -36,6 +36,4 @@ async def refresh(refresh_token: Annotated[str, Depends(security)]):
 
     response = LoginModel(access_token=tokens["access_token"], refresh_token=tokens["refresh_token"])
 
-    await auth_token.add_token_to_blacklist(refresh_token)
-
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
