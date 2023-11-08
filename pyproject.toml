@@ -7,11 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.10.12"
-sqlalchemy = "2.0.22"
+sqlalchemy = "2.0.23"
 alembic = "1.12.1"
 fastapi = "0.104.1"
-uvicorn = "0.23.2"
-asyncpg = "0.28.0"
+uvicorn = "0.24.0.post1"
+asyncpg = "0.29.0"
 pydantic-settings = "2.0.3"
 pyjwt = "2.8.0"
 python-dateutil = "2.8.2"
@@ -20,6 +20,7 @@ passlib = "1.7.4"
 python-multipart = "0.0.6"
 cryptography = "41.0.5"
 aioredis = "2.0.1"
+redis = "5.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
