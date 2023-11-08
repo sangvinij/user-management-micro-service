@@ -28,6 +28,9 @@ class AuthBackend:
         if not user or not self.verify_password(user.password, password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="invalid credentials")
 
+        if user.is_blocked:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user blocked")
+
         return user
 
     @staticmethod
