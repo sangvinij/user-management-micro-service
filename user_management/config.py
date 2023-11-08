@@ -1,4 +1,3 @@
-import datetime
 from typing import List
 
 import pytz
@@ -20,10 +19,16 @@ class Settings(BaseSettings):
     TIMEZONE: str = "Europe/Minsk"
     SECRET_KEY: str
     TOKEN_HASH_ALGORITHM: str = "HS256"
+    REDIS_PORT: int
+    REDIS_HOST: str
 
     @property
     def db_url(self) -> str:
         return f"{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    @property
+    def redis_url(self) -> str:
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
     def get_timezone(self):
         return pytz.timezone(self.TIMEZONE)
