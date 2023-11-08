@@ -55,7 +55,7 @@ class AuthToken:
     def check_token_type(token: str, jwt_type: str) -> None:
         token_headers = jwt.get_unverified_header(token)
         if token_headers["token_type"] != jwt_type:
-            raise ValueError("invalid token type")
+            raise TokenError("invalid token type")
 
         return None
 
