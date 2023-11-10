@@ -17,15 +17,13 @@ from ...config import config
 class AuthToken:
     @staticmethod
     def get_access_token_expiration_time() -> datetime:
-        return datetime.datetime.now(tz=pytz.timezone("Europe/Minsk")) + datetime.timedelta(
+        return datetime.datetime.now(tz=config.get_timezone()) + datetime.timedelta(
             minutes=config.ACCESS_TOKEN_TTL_MINUTES
         )
 
     @staticmethod
     def get_refresh_token_expiration_time() -> datetime:
-        return datetime.datetime.now(tz=pytz.timezone("Europe/Minsk")) + datetime.timedelta(
-            days=config.REFRESH_TOKEN_TTL_DAYS
-        )
+        return datetime.datetime.now(tz=config.get_timezone()) + datetime.timedelta(days=config.REFRESH_TOKEN_TTL_DAYS)
 
     @staticmethod
     def _create_token(jwt_type: str, user_id: uuid.UUID, expiration_time: datetime = None) -> str:

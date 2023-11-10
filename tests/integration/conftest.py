@@ -10,7 +10,7 @@ from httpx import AsyncClient
 from sqlalchemy import delete
 
 from user_management.config import config
-from user_management.database.db_settings import async_session_maker, get_async_session
+from user_management.database.db_settings import async_session_maker
 from user_management.database.models import Group, Role, User
 
 

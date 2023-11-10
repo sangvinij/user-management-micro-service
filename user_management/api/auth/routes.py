@@ -24,6 +24,7 @@ async def login(
 
     token_pair = auth_token.create_token_pair(user_id=user.user_id)
     response = LoginModel(access_token=token_pair["access_token"], refresh_token=token_pair["refresh_token"])
+
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
 
 

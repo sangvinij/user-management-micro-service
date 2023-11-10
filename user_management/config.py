@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     DB_NAME: str
     WEBAPP_TEST_HOST: str
     ALLOWED_HOSTS: List[str] = ["*"]
-    ACCESS_TOKEN_TTL_MINUTES: int = 1
+    ACCESS_TOKEN_TTL_MINUTES: int = 5
     REFRESH_TOKEN_TTL_DAYS: int = 10
     TIMEZONE: str = "Europe/Minsk"
     SECRET_KEY: str

@@ -5,12 +5,12 @@ Revises: 659a17349c0d
 Create Date: 2023-11-10 13:39:31.099837+03:00
 
 """
-from typing import Sequence, Union
+from typing import Optional, Sequence, Union
 
 from alembic import op
 
 revision: str = "cfa2955d9526"
-down_revision: Union[str, None] = "659a17349c0d"
+down_revision: Optional[str] = "659a17349c0d"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

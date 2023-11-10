@@ -35,6 +35,7 @@ class AuthBackend:
 
     @staticmethod
     def verify_password(password1: str, password2: str) -> bool:
+        # when hashing password feature is implemented this function will be changed
         return password1 == password2
 
 
