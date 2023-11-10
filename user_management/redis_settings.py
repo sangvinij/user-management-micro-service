@@ -1,6 +1,6 @@
 from redis import asyncio as aioredis
 
-from ..config import config
+from user_management.config import config
 
 
 async def create_redis_pool():

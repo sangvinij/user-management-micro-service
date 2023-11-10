@@ -3,13 +3,12 @@ import uuid
 from typing import Dict, Optional, Union
 
 import jwt
-import pytz
 import redis.exceptions
 from fakeredis.aioredis import FakeRedis
 from redis.asyncio import Redis
 
 from user_management.api.auth.exceptions import TokenError
-from user_management.database.redis_settings import create_redis_pool
+from user_management.redis_settings import create_redis_pool
 
 from ...config import config
 
