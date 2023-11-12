@@ -60,3 +60,7 @@ The entire API-scheme of the application is available on the main page of the se
 ## Running tests
 You can run project's tests by running either `pytest` or `task run-tests` from the root directory of
 the project. Make sure that you have `WEBAPP_TESTS_HOST` variable set in `.env` file correctly.
+If you want to run only unit tests you can run `pytest tests/unit`.
+If you want to run integration tests you can run `pytest tests/integration`, but make sure that you've got 
+application server and database operational. Integration tests are designed to run on an empty database, 
+but which has all the necessary tables.

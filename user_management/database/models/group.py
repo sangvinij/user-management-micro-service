@@ -10,7 +10,7 @@ class Group(Base):
     __tablename__ = "group"
     group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(length=255), unique=True)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
 
     user = relationship("User", back_populates="group", uselist=True)
 

@@ -115,6 +115,3 @@ class AuthToken:
         await self.add_token_to_blacklist(refresh_token)
 
         return new_token_pair
-
-
-auth_token = AuthToken()
