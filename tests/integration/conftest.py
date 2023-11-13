@@ -47,7 +47,7 @@ async def roles():
 
 @pytest_asyncio.fixture(scope="package")
 async def group():
-    test_group = Group(name="test group", created_at=datetime.datetime.now(tz=config.get_timezone()))
+    test_group = Group(name="test group")
 
     async with async_session_maker() as session:
         session.add(test_group)
@@ -81,7 +81,6 @@ async def user(roles, group):
             "surname": "test_surname",
             "is_blocked": False,
             "image_s3_path": "stub_path",
-            "created_at": datetime.datetime.now(tz=config.get_timezone()),
             "role_id": role_id,
             "group_id": group.group_id,
         }

@@ -20,7 +20,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(length=255), unique=True)
     image_s3_path: Mapped[str] = mapped_column(String(length=255))
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=datetime.now(tz=config.get_timezone())
+    )
     modified_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), default=datetime.now(tz=config.get_timezone())
     )

@@ -1,8 +1,8 @@
 """02_role_unique_constraint_add_timezone
 
-Revision ID: 98c6e9ca0d2a
+Revision ID: 6be8dab449e4
 Revises: 659a17349c0d
-Create Date: 2023-11-12 16:52:45.521451+03:00
+Create Date: 2023-11-13 11:34:37.816733+03:00
 
 """
 from typing import Optional, Sequence, Union
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "98c6e9ca0d2a"
+revision: str = "6be8dab449e4"
 down_revision: Optional[str] = "659a17349c0d"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
