@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 
-from tests.testlib.client.auth_client import AuthTestClient
+from tests.test_client import AuthTestClient
 from user_management.database.models import User
 
 
