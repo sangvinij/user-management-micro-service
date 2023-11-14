@@ -22,8 +22,8 @@ async def login(
 ):
     user = await service.authenticate(username=form_data.username, password=form_data.password)
 
-    token_pair = auth_token.create_token_pair(user_id=user.user_id)
-    response = LoginModel(access_token=token_pair["access_token"], refresh_token=token_pair["refresh_token"])
+    access_token, refresh_token = auth_token.create_token_pair(user_id=user.user_id)
+    response = LoginModel(access_token=access_token, refresh_token=refresh_token)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
 
@@ -33,10 +33,10 @@ async def refresh(
     refresh_token: Annotated[str, Depends(security)], auth_token: Annotated[AuthToken, Depends(AuthToken)]
 ):
     try:
-        tokens = await auth_token.refresh_token(refresh_token)
+        new_access_token, new_refresh_token = await auth_token.refresh_token(refresh_token)
     except TokenError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    response = LoginModel(access_token=tokens["access_token"], refresh_token=tokens["refresh_token"])
+    response = LoginModel(access_token=new_access_token, refresh_token=new_refresh_token)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())

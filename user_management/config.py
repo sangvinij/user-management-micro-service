@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     TOKEN_HASH_ALGORITHM: str = "HS256"
     REDIS_PORT: int
     REDIS_HOST: str
+    REDIS_DB_NUM: int
 
     @property
     def db_url(self) -> str:
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
 
     @property
     def redis_url(self) -> str:
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB_NUM}"
 
     def get_timezone(self):
         return pytz.timezone(self.TIMEZONE)

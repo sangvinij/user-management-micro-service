@@ -41,10 +41,13 @@ class TestToken:
             assert False, "token is valid despite of expiration time"
 
     def test_create_token_pair(self):
-        token_pair = self.auth_token.create_token_pair(user_id=self.user_id)
+        access_jwt, refresh_jwt = self.auth_token.create_token_pair(user_id=self.user_id)
 
-        assert "access_token" in token_pair
-        assert "refresh_token" in token_pair
+        access_jwt_type = jwt.get_unverified_header(access_jwt)["jwt_type"]
+        refresh_jwt_type = jwt.get_unverified_header(refresh_jwt)["jwt_type"]
+
+        assert access_jwt_type == "access"
+        assert refresh_jwt_type == "refresh"
 
     @pytest.mark.asyncio
     async def test_add_token_to_blacklist(self, fake_redis_client):

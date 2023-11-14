@@ -9,12 +9,15 @@ from user_management.database.models import User
 
 
 class UserManager:
+    """A class for managing user-related data in a database."""
+
     model = User
 
     async def get_by_username(self, username: str) -> Optional[User]:
+        """Retrieve a user from the database based on the provided username, phone_number or email."""
         async with async_session_maker() as session:
             try:
-                query = await session.execute(
+                user = await session.scalar(
                     select(self.model).filter(
                         or_(
                             User.username == username,
@@ -23,7 +26,6 @@ class UserManager:
                         )
                     )
                 )
-                user = query.scalar_one()
 
             except NoResultFound:
                 user = None

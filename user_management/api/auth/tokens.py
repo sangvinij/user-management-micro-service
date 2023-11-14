@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 
 import jwt
 import redis.exceptions
@@ -8,7 +8,7 @@ from fakeredis.aioredis import FakeRedis
 from redis.asyncio import Redis
 
 from user_management.api.auth.exceptions import TokenError
-from user_management.redis_settings import create_redis_pool
+from user_management.redis_settings import get_redis_client
 
 from ...config import config
 
@@ -43,7 +43,7 @@ class AuthToken:
 
         return jwt_token
 
-    def create_token_pair(self, user_id: uuid.UUID) -> Dict:
+    def create_token_pair(self, user_id: uuid.UUID) -> Tuple:
         access_token = self._create_token(
             jwt_type="access", user_id=user_id, expiration_time=self.get_access_token_expiration_time()
         )
@@ -51,7 +51,7 @@ class AuthToken:
             jwt_type="refresh", user_id=user_id, expiration_time=self.get_refresh_token_expiration_time()
         )
 
-        return {"access_token": access_token, "refresh_token": refresh_token}
+        return access_token, refresh_token
 
     @staticmethod
     def check_token_type(token: str, jwt_type: str) -> None:
@@ -64,7 +64,7 @@ class AuthToken:
     @staticmethod
     async def add_token_to_blacklist(token: str, redis_client=None) -> None:
         if redis_client is None:
-            redis_client = await create_redis_pool().__anext__()
+            redis_client = await get_redis_client().__anext__()
         try:
             await redis_client.sadd("token_blacklist", token)
 
@@ -76,7 +76,7 @@ class AuthToken:
     @staticmethod
     async def check_token_blacklisted(token: str, redis_client: Optional[Union[Redis, FakeRedis]] = None) -> None:
         if redis_client is None:
-            redis_client = await create_redis_pool().__anext__()
+            redis_client = await get_redis_client().__anext__()
 
         try:
             tokens = await redis_client.smembers("token_blacklist")
@@ -108,7 +108,7 @@ class AuthToken:
 
         return verified_token
 
-    async def refresh_token(self, refresh_token: str) -> Dict:
+    async def refresh_token(self, refresh_token: str) -> Tuple:
         verified_token = await self.verify_token(refresh_token, jwt_type="refresh")
         new_token_pair = self.create_token_pair(user_id=verified_token["user_id"])
 

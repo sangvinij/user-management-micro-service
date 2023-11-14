@@ -3,8 +3,8 @@ from redis import asyncio as aioredis
 from user_management.config import config
 
 
-async def create_redis_pool():
-    redis_client = await aioredis.from_url(config.redis_url)
+async def get_redis_client():
+    redis_client: aioredis.Redis = await aioredis.from_url(config.redis_url)
     try:
         yield redis_client
     finally:
