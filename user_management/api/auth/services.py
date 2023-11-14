@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 
-from user_management.managers.user_manager import UserManager
 from user_management.database.models.user import User
+from user_management.managers.user_manager import UserManager
 
 
 class AuthService:
