@@ -1,6 +1,24 @@
 version: '3.9'
 services:
 
+  redis:
+    container_name: user_management_redis
+    image: redis:7.2.3-alpine3.18
+    networks:
+      - user_management
+    restart: always
+    ports:
+      - '${REDIS_PORT}:6379'
+    volumes:
+      - .local/services/redis:/var/lib/redis/data
+    init: true
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   db:
     container_name: user_management_db
     image: postgres:16.0
@@ -53,6 +71,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 networks:
   user_management:

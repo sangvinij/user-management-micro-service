@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy import TIMESTAMP, UUID, Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from ...config import config
 from .base import Base
 
 
@@ -19,8 +20,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(length=255), unique=True)
     image_s3_path: Mapped[str] = mapped_column(String(length=255))
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(TIMESTAMP)
-    modified_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=datetime.now(tz=config.get_timezone())
+    )
+    modified_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), default=datetime.now(tz=config.get_timezone())
+    )
 
     group_id: Mapped[int] = mapped_column(ForeignKey("group.group_id"))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.role_id"))
