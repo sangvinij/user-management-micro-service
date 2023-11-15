@@ -13,7 +13,7 @@ class Role(Base):
 
     user = relationship("User", back_populates="role", uselist=True)
 
-    __table_args__ = (UniqueConstraint("role_name", name="uq_role_name"),)
+    __table_args__ = (UniqueConstraint("role_name", name="uq_role_role_name"),)
 
     def __str__(self):
         return f"{self.user}"
