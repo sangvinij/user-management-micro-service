@@ -15,7 +15,7 @@ class Group(Base):
         TIMESTAMP(timezone=True), default=datetime.now(tz=config.get_timezone())
     )
 
-    user = relationship("User", back_populates="group", uselist=True)
+    user = relationship("User", back_populates="group", uselist=True, lazy="joined")
 
     def __str__(self):
         return f"{self.name}"

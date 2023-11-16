@@ -11,7 +11,7 @@ class Role(Base):
     role_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     role_name: Mapped[enum.Enum] = mapped_column(Enum("USER", "ADMIN", "MODERATOR", name="user_role"))
 
-    user = relationship("User", back_populates="role", uselist=True)
+    user = relationship("User", back_populates="role", uselist=True, lazy="joined")
 
     __table_args__ = (UniqueConstraint("role_name", name="uq_role_role_name"),)
 

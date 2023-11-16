@@ -1,5 +1,8 @@
+import sqlalchemy.exc
 from fastapi import HTTPException, status
+from passlib.hash import pbkdf2_sha256
 
+from user_management.api.auth.schemas import SignupModel
 from user_management.database.models.user import User
 from user_management.managers.user_manager import UserManager
 
@@ -18,6 +21,15 @@ class AuthService:
         return user
 
     @staticmethod
-    def verify_password(password1: str, password2: str) -> bool:
-        # when hashing password feature is implemented this function will be changed
-        return password1 == password2
+    def verify_password(hashed_password: str, request_password: str) -> bool:
+        return pbkdf2_sha256.verify(request_password, hashed_password)
+
+    async def signup(self, user: SignupModel) -> User:
+        try:
+            created_user: User = await self.manager.create(user.model_dump())
+        except sqlalchemy.exc.IntegrityError:
+            raise HTTPException(
+                status_code=400, detail="user with such credentials already exists or invalid role/group"
+            )
+
+        return created_user
