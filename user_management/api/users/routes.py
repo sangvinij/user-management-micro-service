@@ -37,7 +37,7 @@ async def delete_me(
 
 @user_router.get("/{user_id}", response_model=UserReadModel)
 async def read_one_user(
-    user_id: Union[Annotated[uuid.UUID, Path()], str],
+    user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
     authorized_user: Annotated[User, Depends(admin_or_moderator)],
 ):
@@ -46,9 +46,9 @@ async def read_one_user(
     return user
 
 
-@user_router.patch("/{user_id}", response_model=UserDeleteModel, dependencies=[Depends(admin_user)])
+@user_router.patch("/{user_id}", response_model=UserReadModel, dependencies=[Depends(admin_user)])
 async def update_one_user(
-    user_id: Union[Annotated[uuid.UUID, Path()], str],
+    user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
     data: Annotated[UserUpdateModel, Body()],
 ):
@@ -57,12 +57,13 @@ async def update_one_user(
     return user
 
 
-@user_router.delete("/{user_id}", response_model=UserReadModel, dependencies=[Depends(admin_user)])
+@user_router.delete("/{user_id}", dependencies=[Depends(admin_user)], response_model=UserDeleteModel)
 async def delete_one_user(
-    user_id: Annotated[uuid.UUID, Path()],
+    user_id: str,
     service: Annotated[UserService, Depends(UserService)],
 ):
-    deleted_user_id: uuid.UUID = await service.delete_user(user_id=user_id)
+    deleted_user_id = await service.delete_user(user_id=uuid.UUID(user_id))
+
     return deleted_user_id
 
 

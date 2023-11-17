@@ -1,13 +1,15 @@
 import asyncio
 import secrets
 import string
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Dict
 
+import httpx
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy import delete
 
+from tests.test_client import AuthTestClient, UserTestClient
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
 from user_management.database.models import Group, Role, User
@@ -68,15 +70,17 @@ def generate_credentials():
     return {"email": email, "password": password, "username": username, "phone_number": phone_number}
 
 
-@pytest_asyncio.fixture
-async def user(roles, group):
-    # when an API is created for creating and deleting users, this fixture will work with this API instead of database
+@pytest_asyncio.fixture(scope="package")
+async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
+    auth_client = AuthTestClient()
+    user_client = UserTestClient()
 
-    role_id = roles["user_role"].role_id
-    user_data = generate_credentials()
-    user_data.update(
+    role_id = roles["admin_role"].role_id
+
+    admin_data = generate_credentials()
+    admin_data.update(
         {
-            "name": "test_name",
+            "name": "test_admin",
             "surname": "test_surname",
             "is_blocked": False,
             "image_s3_path": "stub_path",
@@ -84,15 +88,87 @@ async def user(roles, group):
             "group_id": group.group_id,
         }
     )
-    test_user = User(**user_data)
+    signup_response: httpx.Response = await auth_client.signup(data=admin_data, client=client)
+    test_admin = signup_response.json()
 
-    async with async_session_maker() as session:
-        session.add(test_user)
-        await session.commit()
+    login_response = await auth_client.authenticate(
+        username=admin_data["username"], password=admin_data["password"], client=client
+    )
 
-    yield test_user
+    admin_access_token = login_response.json()["access_token"]
 
-    async with async_session_maker() as session:
-        stmt = delete(User).filter(User.user_id == test_user.user_id)
-        await session.execute(stmt)
-        await session.commit()
+    yield {"admin": test_admin, "admin_token": admin_access_token}
+
+    await user_client.delete(user_id=test_admin["user_id"], admin_token=admin_access_token, client=client)
+
+
+@pytest_asyncio.fixture(scope="package")
+async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
+    auth_client: AuthTestClient = AuthTestClient()
+    user_client: UserTestClient = UserTestClient()
+
+    role_id: int = roles["moderator_role"].role_id
+
+    moderator_data: Dict = generate_credentials()
+    moderator_data.update(
+        {
+            "name": "test_admin",
+            "surname": "test_surname",
+            "is_blocked": False,
+            "image_s3_path": "stub_path",
+            "role_id": role_id,
+            "group_id": group.group_id,
+        }
+    )
+    signup_response: httpx.Response = await auth_client.signup(data=moderator_data, client=client)
+    test_moderator = signup_response.json()
+
+    login_response: httpx.Response = await auth_client.authenticate(
+        username=moderator_data["username"], password=moderator_data["password"], client=client
+    )
+    moderator_access_token: str = login_response.json()["access_token"]
+
+    yield {"moderator": test_moderator, "moderator_token": moderator_access_token}
+
+    await user_client.delete(user_id=test_moderator["user_id"], admin_token=admin["admin_token"], client=client)
+
+
+@pytest_asyncio.fixture
+async def user_data(roles: Dict, group: Group, client: AsyncClient, admin: Dict) -> Dict:
+    auth_client = AuthTestClient()
+    user_client = UserTestClient()
+
+    role_id = roles["user_role"].role_id
+    user_data = generate_credentials()
+    user_data.update(
+        {
+            "name": "test_user",
+            "surname": "test_surname",
+            "is_blocked": False,
+            "image_s3_path": "stub_path",
+            "role_id": role_id,
+            "group_id": group.group_id,
+        }
+    )
+
+    signup_response: httpx.Response = await auth_client.signup(data=user_data, client=client)
+    test_user: Dict = signup_response.json()
+
+    login_response: httpx.Response = await auth_client.authenticate(
+        username=test_user["username"], password=test_user["password"], client=client
+    )
+
+    user_access_token: str = login_response.json()["access_token"]
+    user_refresh_token: str = login_response.json()["refresh_token"]
+
+    signup_response: httpx.Response = await auth_client.signup(data=user_data, client=client)
+    test_user: signup_response.json()
+
+    yield {
+        "test_user": test_user,
+        "access_token": user_access_token,
+        "refresh_token": user_refresh_token,
+        "password": user_data["password"],
+    }
+
+    await user_client.delete(user_id=test_user["user_id"], admin_token=admin["admin_token"], client=client)
