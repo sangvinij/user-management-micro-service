@@ -1,12 +1,12 @@
 import uuid
-from typing import Annotated, Union
+from typing import Annotated, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, Path
+from fastapi import APIRouter, Body, Depends, Path, Query
 
 from user_management.api.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
 
-from .schemas import UserDeleteModel, UserReadModel, UserUpdateModel
+from .schemas import UserDeleteModel, UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
 
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])
@@ -64,3 +64,20 @@ async def delete_one_user(
 ):
     deleted_user_id: uuid.UUID = await service.delete_user(user_id=user_id)
     return deleted_user_id
+
+
+@user_router.get("s", response_model=UserListReadModel)
+async def user_list(
+    service: Annotated[UserService, Depends(UserService)],
+    authorized_user: Annotated[User, Depends(admin_or_moderator)],
+    page: int = Query(ge=1, default=1),
+    limit: int = Query(ge=1, default=50),
+    sort_by: str = Query(default="username"),
+    name: Optional[str] = Query(default=None),
+    order_by: str = Query(default="asc"),
+):
+    response = await service.get_list(
+        page=page, limit=limit, sort_field=sort_by, name=name, ord_direction=order_by, authorized_user=authorized_user
+    )
+
+    return response

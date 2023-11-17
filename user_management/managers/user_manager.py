@@ -3,8 +3,10 @@ import uuid
 from typing import Dict, Optional
 
 from passlib.hash import pbkdf2_sha256
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, desc, func, or_, select
+from sqlalchemy.engine import ScalarResult
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.sql.selectable import Select
 
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
@@ -45,8 +47,35 @@ class UserManager:
 
         return user
 
-    async def get_list(self):
-        pass
+    async def get_all(
+        self,
+        offset: int,
+        authorized_user: User,
+        limit: int = 50,
+        name: Optional[str] = None,
+        sort_field: Optional[str] = None,
+        ord_direction: str = "asc",
+    ) -> Dict:
+        query: Select = select(self.model).limit(limit=limit).offset(offset=offset)
+        total_count_query: Select = select(func.count()).select_from(self.model)
+
+        if sort_field:
+            query = query.order_by(desc(sort_field)) if ord_direction == "desc" else query.order_by(sort_field)
+
+        if name:
+            query = query.filter(self.model.name.ilike(f"%{name}%"))
+
+        if authorized_user.role.role_name == "MODERATOR":
+            query = query.filter(self.model.group_id == authorized_user.group.group_id)
+            total_count_query = total_count_query.filter(self.model.group_id == authorized_user.group_id)
+
+        async with async_session_maker() as session:
+            users: ScalarResult = await session.scalars(query)
+            total_count: int = await session.scalar(total_count_query)
+
+        result: Dict = {"total_count": total_count, "users": users.unique().all()}
+
+        return result
 
     async def create(self, user_data: Dict) -> User:
         password = user_data.pop("password")

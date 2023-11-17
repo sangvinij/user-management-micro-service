@@ -1,5 +1,5 @@
 import uuid
-from typing import Annotated
+from typing import Annotated, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
 
@@ -32,3 +32,32 @@ class UserService:
         deleted_user_id: uuid.UUID = await self.manager.delete_user(user_id=user_id)
 
         return deleted_user_id
+
+    async def get_list(
+        self,
+        authorized_user: User = Depends(admin_or_moderator),
+        page: int = 1,
+        limit: int = 50,
+        name: Optional[str] = None,
+        sort_field: Optional[str] = None,
+        ord_direction: str = "asc",
+    ):
+        offset: int = (page - 1) * limit
+
+        result: Dict = await self.manager.get_all(
+            limit=limit,
+            offset=offset,
+            name=name,
+            sort_field=sort_field,
+            ord_direction=ord_direction,
+            authorized_user=authorized_user,
+        )
+
+        total_pages = (result["total_count"] + limit - 1) // limit
+
+        if page > total_pages:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")
+
+        result.update({"page": page, "limit": limit, "total_pages": total_pages})
+
+        return result

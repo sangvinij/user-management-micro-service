@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
+from black import List
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -29,6 +30,14 @@ class UserReadModel(BaseModel):
     modified_at: datetime
     role: RoleModel
     group: GroupModel
+
+
+class UserListReadModel(BaseModel):
+    page: int
+    limit: int
+    total_pages: int
+    total_count: int
+    users: List[UserReadModel]
 
 
 class UserUpdateModel(BaseModel):
