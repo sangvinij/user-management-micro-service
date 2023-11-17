@@ -12,7 +12,7 @@ from sqlalchemy import delete
 from tests.test_client import AuthTestClient, UserTestClient
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
-from user_management.database.models import Group, Role, User
+from user_management.database.models import Group, Role
 
 
 @pytest.fixture(scope="package")
@@ -70,7 +70,7 @@ def generate_credentials():
     return {"email": email, "password": password, "username": username, "phone_number": phone_number}
 
 
-@pytest_asyncio.fixture(scope="package")
+@pytest_asyncio.fixture()
 async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     auth_client = AuthTestClient()
     user_client = UserTestClient()
@@ -102,7 +102,7 @@ async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     await user_client.delete(user_id=test_admin["user_id"], admin_token=admin_access_token, client=client)
 
 
-@pytest_asyncio.fixture(scope="package")
+@pytest_asyncio.fixture()
 async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()

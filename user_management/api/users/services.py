@@ -19,6 +19,9 @@ class UserService:
         if authorized_user.role.role_name == "MODERATOR" and authorized_user.group_id != user.group_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid role")
 
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")
+
         return user
 
     async def update_user(self, user_id: uuid.UUID, user_data: UserUpdateModel) -> User:

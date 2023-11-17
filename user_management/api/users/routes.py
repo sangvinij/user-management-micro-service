@@ -1,5 +1,5 @@
 import uuid
-from typing import Annotated, Optional, Union
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
@@ -32,7 +32,7 @@ async def delete_me(
     user: Annotated[User, Depends(authenticated_user)], service: Annotated[UserService, Depends(UserService)]
 ):
     deleted_user_id: uuid.UUID = await service.delete_user(user_id=user.user_id)
-    return deleted_user_id
+    return {"user_id": deleted_user_id}
 
 
 @user_router.get("/{user_id}", response_model=UserReadModel)
@@ -59,12 +59,12 @@ async def update_one_user(
 
 @user_router.delete("/{user_id}", dependencies=[Depends(admin_user)], response_model=UserDeleteModel)
 async def delete_one_user(
-    user_id: str,
+    user_id: uuid.UUID,
     service: Annotated[UserService, Depends(UserService)],
 ):
-    deleted_user_id = await service.delete_user(user_id=uuid.UUID(user_id))
+    deleted_user_id = await service.delete_user(user_id=user_id)
 
-    return deleted_user_id
+    return {"user_id": deleted_user_id}
 
 
 @user_router.get("s", response_model=UserListReadModel)

@@ -5,7 +5,6 @@ from httpx import AsyncClient
 from starlette import status
 
 from tests.test_client import AuthTestClient
-from user_management.database.models import User
 
 
 class TestAuth:
