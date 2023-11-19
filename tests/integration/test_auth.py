@@ -12,7 +12,7 @@ class TestAuth:
 
     @pytest.mark.parametrize("login_field", ["username", "phone_number", "email"])
     @pytest.mark.asyncio
-    async def test_auth(self, client: AsyncClient, user_data: Dict, login_field):
+    async def test_log_auth(self, client: AsyncClient, user_data: Dict, login_field):
         user = user_data["user"]
         password = user_data["password"]
 

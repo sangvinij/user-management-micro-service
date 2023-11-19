@@ -26,8 +26,8 @@ class AuthTestClient:
         response = await client.post(url=self.refresh_endpoint, headers=headers, timeout=self.timeout)
         return response
 
-    async def signup(self, data: Dict, client: httpx.AsyncClient) -> httpx.Response:
-        response: httpx.Response = await client.post(url=self.signup_endpoint, json=data, timeout=self.timeout)
+    async def signup(self, client: httpx.AsyncClient, **kwargs) -> httpx.Response:
+        response: httpx.Response = await client.post(url=self.signup_endpoint, json=kwargs, timeout=self.timeout)
 
         return response
 
@@ -36,9 +36,40 @@ class UserTestClient:
     """A class for handling user CRUD requests using HTTP."""
 
     base_endpoint = r"/user"
+    timeout = 20
 
-    async def delete(self, user_id: uuid.UUID, admin_token: str, client: httpx.AsyncClient) -> httpx.Response:
-        response: httpx.Response = await client.delete(
-            url=f"{self.base_endpoint}/{user_id}", headers={"Authorization": f"Bearer {admin_token}"}
+    async def _handle_action(
+        self, url: str, action: str, token: str, client: httpx.AsyncClient, **kwargs
+    ) -> httpx.Response:
+        headers = {"Authorization": f"Bearer {token}"}
+
+        match action:
+            case "read":
+                response = await client.get(url=url, headers=headers, timeout=self.timeout)
+            case "update":
+                response = await client.patch(url=url, headers=headers, timeout=self.timeout, json=kwargs)
+            case "delete":
+                response = await client.delete(url=url, headers=headers, timeout=self.timeout)
+            case _:
+                raise TypeError("wrong action")
+
+        return response
+
+    async def rud_current_user(self, action: str, token: str, client: httpx.AsyncClient, **kwargs) -> httpx.Response:
+        url = f"{self.base_endpoint}/me"
+        return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
+
+    async def rud_specific_user(
+        self, user_id: uuid.UUID, action: str, token: str, client: httpx.AsyncClient, **kwargs
+    ) -> httpx.Response:
+        url = f"{self.base_endpoint}/{user_id}"
+        return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
+
+    async def get_users_list(self, access_token: str, client: httpx.AsyncClient, **params) -> httpx.Response:
+        response: httpx.Response = await client.get(
+            f"{self.base_endpoint}s",
+            params=params,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=self.timeout,
         )
         return response

@@ -70,7 +70,7 @@ def generate_credentials():
     return {"email": email, "password": password, "username": username, "phone_number": phone_number}
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture(scope="package")
 async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     auth_client = AuthTestClient()
     user_client = UserTestClient()
@@ -88,7 +88,7 @@ async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
             "group_id": group.group_id,
         }
     )
-    signup_response: httpx.Response = await auth_client.signup(data=admin_data, client=client)
+    signup_response: httpx.Response = await auth_client.signup(client=client, **admin_data)
     test_admin = signup_response.json()
 
     login_response = await auth_client.authenticate(
@@ -99,10 +99,10 @@ async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
 
     yield {"admin": test_admin, "admin_token": admin_access_token}
 
-    await user_client.delete(user_id=test_admin["user_id"], admin_token=admin_access_token, client=client)
+    await user_client.rud_current_user(action="delete", token=admin_access_token, client=client)
 
 
-@pytest_asyncio.fixture()
+@pytest_asyncio.fixture(scope="package")
 async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()
@@ -120,7 +120,7 @@ async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
             "group_id": group.group_id,
         }
     )
-    signup_response: httpx.Response = await auth_client.signup(data=moderator_data, client=client)
+    signup_response: httpx.Response = await auth_client.signup(client=client, **moderator_data)
     test_moderator = signup_response.json()
 
     login_response: httpx.Response = await auth_client.authenticate(
@@ -130,17 +130,17 @@ async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
 
     yield {"moderator": test_moderator, "moderator_token": moderator_access_token}
 
-    await user_client.delete(user_id=test_moderator["user_id"], admin_token=admin["admin_token"], client=client)
+    await user_client.rud_current_user(action="delete", token=moderator_access_token, client=client)
 
 
 @pytest_asyncio.fixture
-async def user_data(roles: Dict, group: Group, client: AsyncClient, admin: Dict) -> Dict:
+async def user_data(roles: Dict, group: Group, client: AsyncClient) -> Dict:
     auth_client = AuthTestClient()
     user_client = UserTestClient()
 
     role_id = roles["user_role"].role_id
-    user_data = generate_credentials()
-    user_data.update(
+    data = generate_credentials()
+    data.update(
         {
             "name": "test_user",
             "surname": "test_surname",
@@ -151,24 +151,24 @@ async def user_data(roles: Dict, group: Group, client: AsyncClient, admin: Dict)
         }
     )
 
-    signup_response: httpx.Response = await auth_client.signup(data=user_data, client=client)
+    signup_response: httpx.Response = await auth_client.signup(client=client, **data)
     test_user: Dict = signup_response.json()
 
     login_response: httpx.Response = await auth_client.authenticate(
-        username=test_user["username"], password=test_user["password"], client=client
+        username=test_user["username"], password=data["password"], client=client
     )
 
     user_access_token: str = login_response.json()["access_token"]
     user_refresh_token: str = login_response.json()["refresh_token"]
 
-    signup_response: httpx.Response = await auth_client.signup(data=user_data, client=client)
+    signup_response: httpx.Response = await auth_client.signup(client=client, **data)
     test_user: signup_response.json()
 
     yield {
-        "test_user": test_user,
+        "user": test_user,
         "access_token": user_access_token,
         "refresh_token": user_refresh_token,
-        "password": user_data["password"],
+        "password": data["password"],
     }
 
-    await user_client.delete(user_id=test_user["user_id"], admin_token=admin["admin_token"], client=client)
+    await user_client.rud_current_user(action="delete", token=user_access_token, client=client)
