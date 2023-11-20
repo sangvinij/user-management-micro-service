@@ -41,6 +41,7 @@ class UserTestClient:
     async def _handle_action(
         self, url: str, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
     ) -> httpx.Response:
+        """Choose the correct request method depending on the 'action' parameter."""
         headers = {"Authorization": f"Bearer {token}"} if token else None
 
         match action:
@@ -58,16 +59,22 @@ class UserTestClient:
     async def rud_current_user(
         self, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
     ) -> httpx.Response:
+        """Make requests to /user/me endpoint."""
+
         url = f"{self.base_endpoint}/me"
         return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
 
     async def rud_specific_user(
         self, user_id: uuid.UUID, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
     ) -> httpx.Response:
+        """Make requests to /user/{user_id} endpoint."""
+
         url = f"{self.base_endpoint}/{user_id}"
         return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
 
     async def get_users_list(self, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs) -> httpx.Response:
+        """Make requests to /users endpoint"""
+
         headers: Optional[Dict] = {"Authorization": f"Bearer {token}"} if token else None
         response: httpx.Response = await client.get(
             f"{self.base_endpoint}s",

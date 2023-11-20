@@ -3,8 +3,8 @@ from typing import Annotated, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
 
-from user_management.api.utils.dependencies import admin_or_moderator
 from user_management.api.users.schemas import UserUpdateModel
+from user_management.api.utils.dependencies import admin_or_moderator
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager
 
@@ -17,7 +17,7 @@ class UserService:
     ) -> User:
         user: User = await self.manager.get_by_id(user_id)
         if authorized_user.role.role_name == "MODERATOR" and authorized_user.group_id != user.group_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="invalid role")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
 
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")
@@ -56,7 +56,7 @@ class UserService:
             authorized_user=authorized_user,
         )
 
-        total_pages = (result["total_count"] + limit - 1) // limit
+        total_pages: int = (result["total_count"] + limit - 1) // limit
 
         if page > total_pages:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")

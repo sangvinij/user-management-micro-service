@@ -2,7 +2,6 @@ import datetime
 import uuid
 from typing import Dict, Optional
 
-from passlib.hash import pbkdf2_sha256
 from sqlalchemy import delete, desc, func, or_, select
 from sqlalchemy.engine import ScalarResult
 from sqlalchemy.exc import NoResultFound

@@ -41,7 +41,7 @@ async def admin_user(
     )
 
     if user.role.role_name != "ADMIN":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="user not admin")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
 
     return user
 
@@ -56,6 +56,6 @@ async def admin_or_moderator(
     )
 
     if user.role.role_name not in ("ADMIN", "MODERATOR"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="user not admin or moderator")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
 
     return user

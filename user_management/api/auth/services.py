@@ -1,6 +1,5 @@
 import sqlalchemy.exc
 from fastapi import HTTPException, status
-from passlib.hash import pbkdf2_sha256
 
 from user_management.api.auth.schemas import SignupModel
 from user_management.api.utils.hashers import PasswordHasher

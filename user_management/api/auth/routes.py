@@ -6,9 +6,9 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
+from user_management.api.utils.dependencies import security
 
 from ...database.models import User
-from user_management.api.utils.dependencies import security
 from .exceptions import TokenError
 from .schemas import LoginModel, SignupModel, SignupResponseModel
 

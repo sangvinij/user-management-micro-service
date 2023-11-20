@@ -1,7 +1,7 @@
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
@@ -12,22 +12,22 @@ from .services import UserService
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])
 
 
-@user_router.get("/me", response_model=UserReadModel)
+@user_router.get("/me", response_model=UserReadModel, status_code=status.HTTP_200_OK)
 async def me(user: Annotated[User, Depends(authenticated_user)]):
     return user
 
 
-@user_router.patch("/me", response_model=UserReadModel)
+@user_router.patch("/me", response_model=UserReadModel, status_code=status.HTTP_200_OK)
 async def update_me(
     user: Annotated[User, Depends(authenticated_user)],
     service: Annotated[UserService, Depends(UserService)],
     data: Annotated[UserUpdateModel, Body()],
 ):
-    updated_user = await service.update_user(user_id=user.user_id, user_data=data)
+    updated_user: User = await service.update_user(user_id=user.user_id, user_data=data)
     return updated_user
 
 
-@user_router.delete("/me", response_model=UserDeleteModel)
+@user_router.delete("/me", response_model=UserDeleteModel, status_code=status.HTTP_200_OK)
 async def delete_me(
     user: Annotated[User, Depends(authenticated_user)], service: Annotated[UserService, Depends(UserService)]
 ):
@@ -35,7 +35,7 @@ async def delete_me(
     return {"user_id": deleted_user_id}
 
 
-@user_router.get("/{user_id}", response_model=UserReadModel)
+@user_router.get("/{user_id}", response_model=UserReadModel, status_code=status.HTTP_200_OK)
 async def read_one_user(
     user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
@@ -46,7 +46,9 @@ async def read_one_user(
     return user
 
 
-@user_router.patch("/{user_id}", response_model=UserReadModel, dependencies=[Depends(admin_user)])
+@user_router.patch(
+    "/{user_id}", response_model=UserReadModel, dependencies=[Depends(admin_user)], status_code=status.HTTP_200_OK
+)
 async def update_one_user(
     user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
@@ -57,7 +59,9 @@ async def update_one_user(
     return user
 
 
-@user_router.delete("/{user_id}", dependencies=[Depends(admin_user)], response_model=UserDeleteModel)
+@user_router.delete(
+    "/{user_id}", dependencies=[Depends(admin_user)], response_model=UserDeleteModel, status_code=status.HTTP_200_OK
+)
 async def delete_one_user(
     user_id: uuid.UUID,
     service: Annotated[UserService, Depends(UserService)],
@@ -67,7 +71,7 @@ async def delete_one_user(
     return {"user_id": deleted_user_id}
 
 
-@user_router.get("s", response_model=UserListReadModel)
+@user_router.get("s", response_model=UserListReadModel, status_code=status.HTTP_200_OK)
 async def user_list(
     service: Annotated[UserService, Depends(UserService)],
     authorized_user: Annotated[User, Depends(admin_or_moderator)],
@@ -77,8 +81,8 @@ async def user_list(
     filter_by_name: Optional[str] = Query(default=None),
     order_by: str = Query(default="asc"),
 ):
-    """endpoint /users"""
-    response = await service.get_list(
+    """Endpoint '/users'"""
+    response: Dict = await service.get_list(
         page=page,
         limit=limit,
         sort_field=sort_by,
