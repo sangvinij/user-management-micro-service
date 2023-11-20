@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
 
-from .schemas import UserDeleteModel, UserListReadModel, UserReadModel, UserUpdateModel
+from .schemas import UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
 
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])
@@ -27,7 +27,7 @@ async def update_me(
     return updated_user
 
 
-@user_router.delete("/me", response_model=UserDeleteModel, status_code=status.HTTP_200_OK)
+@user_router.delete("/me", status_code=status.HTTP_200_OK)
 async def delete_me(
     user: Annotated[User, Depends(authenticated_user)], service: Annotated[UserService, Depends(UserService)]
 ):
@@ -59,9 +59,7 @@ async def update_one_user(
     return user
 
 
-@user_router.delete(
-    "/{user_id}", dependencies=[Depends(admin_user)], response_model=UserDeleteModel, status_code=status.HTTP_200_OK
-)
+@user_router.delete("/{user_id}", dependencies=[Depends(admin_user)], status_code=status.HTTP_200_OK)
 async def delete_one_user(
     user_id: uuid.UUID,
     service: Annotated[UserService, Depends(UserService)],

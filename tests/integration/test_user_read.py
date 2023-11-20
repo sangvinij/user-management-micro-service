@@ -68,7 +68,7 @@ class TestUserRead:
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "invalid role"}
+        assert response.json() == {"detail": "insufficient permissions"}
 
         await self.user_client.rud_current_user(
             action="update", token=moderator_token, client=client, group_id=group_1_id

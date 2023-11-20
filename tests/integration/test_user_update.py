@@ -43,7 +43,7 @@ class TestUserUpdate:
         )
 
         assert failed_response.status_code == status.HTTP_403_FORBIDDEN
-        assert failed_response.json() == {"detail": "user not admin"}
+        assert failed_response.json() == {"detail": "insufficient permissions"}
 
     @pytest.mark.asyncio
     async def test_update_user(self, user_data: Dict, client: AsyncClient, admin_data: Dict):

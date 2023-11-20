@@ -50,7 +50,3 @@ class UserUpdateModel(BaseModel):
     is_blocked: Optional[bool] = None
     role_id: Optional[int] = None
     group_id: Optional[int] = None
-
-
-class UserDeleteModel(BaseModel):
-    user_id: uuid.UUID

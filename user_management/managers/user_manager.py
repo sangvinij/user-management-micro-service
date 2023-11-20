@@ -92,8 +92,12 @@ class UserManager:
 
         return user
 
-    async def update_user(self, user_id: uuid.UUID, user_data: Dict) -> User:
+    async def update_user(self, user_id: uuid.UUID, user_data: Dict) -> Optional[User]:
         user: User = await self.get_by_id(user_id)
+
+        if user is None:
+            return None
+
         async with async_session_maker() as session:
             for field, value in user_data.items():
                 setattr(user, field, value)

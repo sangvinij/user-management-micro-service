@@ -1,6 +1,7 @@
 import uuid
 from typing import Annotated, Dict, Optional
 
+import sqlalchemy.exc
 from fastapi import Depends, HTTPException, status
 
 from user_management.api.users.schemas import UserUpdateModel
@@ -20,14 +21,24 @@ class UserService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
 
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
 
         return user
 
     async def update_user(self, user_id: uuid.UUID, user_data: UserUpdateModel) -> User:
-        updated_user: User = await self.manager.update_user(
-            user_id=user_id, user_data=user_data.model_dump(exclude_unset=True)
-        )
+        try:
+            updated_user: User = await self.manager.update_user(
+                user_id=user_id, user_data=user_data.model_dump(exclude_unset=True)
+            )
+
+        except sqlalchemy.exc.IntegrityError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="user with such credentials already exists or invalid role/group",
+            )
+
+        if not updated_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
 
         return updated_user
 
