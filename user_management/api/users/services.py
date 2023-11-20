@@ -3,7 +3,7 @@ from typing import Annotated, Dict, Optional
 
 from fastapi import Depends, HTTPException, status
 
-from user_management.api.dependencies import admin_or_moderator
+from user_management.api.utils.dependencies import admin_or_moderator
 from user_management.api.users.schemas import UserUpdateModel
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager

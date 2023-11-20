@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -23,4 +24,4 @@ class SignupModel(BaseModel):
 
 class SignupResponseModel(SignupModel):
     user_id: uuid.UUID
-    password: str = Field(exclude=True)
+    password: Optional[str] = Field(exclude=True, default=None)

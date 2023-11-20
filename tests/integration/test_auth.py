@@ -4,15 +4,16 @@ import pytest
 from httpx import AsyncClient
 from starlette import status
 
-from tests.test_client import AuthTestClient
+from tests.test_client import AuthTestClient, UserTestClient
 
 
 class TestAuth:
     auth_client = AuthTestClient()
+    user_client = UserTestClient()
 
     @pytest.mark.parametrize("login_field", ["username", "phone_number", "email"])
     @pytest.mark.asyncio
-    async def test_log_auth(self, client: AsyncClient, user_data: Dict, login_field):
+    async def test_auth(self, client: AsyncClient, user_data: Dict, login_field):
         user = user_data["user"]
         password = user_data["password"]
 

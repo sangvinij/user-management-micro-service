@@ -7,7 +7,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy import delete
+from sqlalchemy import delete, or_
 
 from tests.test_client import AuthTestClient, UserTestClient
 from user_management.config import config
@@ -47,47 +47,55 @@ async def roles():
 
 
 @pytest_asyncio.fixture(scope="package")
-async def group():
-    test_group = Group(name="test group")
+async def groups():
+    """create two test groups"""
+    test_group: Group = Group(name="test group")
+    test_group2: Group = Group(name="test group2")
 
     async with async_session_maker() as session:
         session.add(test_group)
+        session.add(test_group2)
         await session.commit()
 
-    yield test_group
+    yield {"test_group": test_group, "test_group2": test_group2}
 
     async with async_session_maker() as session:
-        stmt = delete(Group).filter(Group.group_id == test_group.group_id)
+        stmt = delete(Group).filter(or_(Group.group_id == test_group.group_id, Group.group_id == test_group2.group_id))
         await session.execute(stmt)
         await session.commit()
 
 
-def generate_credentials():
-    email = "test." + "".join(secrets.choice(string.ascii_lowercase) for _ in range(6)) + "@example.com"
-    password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
-    username = "test_".join(secrets.choice(string.ascii_lowercase) for _ in range(8))
-    phone_number = "+37529" + "".join(secrets.choice(string.digits) for _ in range(7))
-    return {"email": email, "password": password, "username": username, "phone_number": phone_number}
+def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool = False) -> Dict:
+    surname: str = "test_" + "".join(secrets.choice(string.ascii_lowercase) for _ in range(6))
+    email: str = "test." + "".join(secrets.choice(string.ascii_lowercase) for _ in range(6)) + "@example.com"
+    password: str = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+    username: str = "test_".join(secrets.choice(string.ascii_lowercase) for _ in range(8))
+    phone_number: str = "+37529" + "".join(secrets.choice(string.digits) for _ in range(7))
+    return {
+        "name": name,
+        "surname": surname,
+        "email": email,
+        "password": password,
+        "username": username,
+        "phone_number": phone_number,
+        "image_s3_path": "stub_path",
+        "group_id": group_id,
+        "role_id": role_id,
+        "is_blocked": is_blocked,
+    }
 
 
 @pytest_asyncio.fixture(scope="package")
-async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
-    auth_client = AuthTestClient()
-    user_client = UserTestClient()
+async def admin_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
+    auth_client: AuthTestClient = AuthTestClient()
+    user_client: UserTestClient = UserTestClient()
 
-    role_id = roles["admin_role"].role_id
+    group_id = groups["test_group"].group_id
 
-    admin_data = generate_credentials()
-    admin_data.update(
-        {
-            "name": "test_admin",
-            "surname": "test_surname",
-            "is_blocked": False,
-            "image_s3_path": "stub_path",
-            "role_id": role_id,
-            "group_id": group.group_id,
-        }
-    )
+    role_id: int = roles["admin_role"].role_id
+
+    admin_data: Dict = generate_user_data(name="test_admin", role_id=role_id, group_id=group_id)
+
     signup_response: httpx.Response = await auth_client.signup(client=client, **admin_data)
     test_admin = signup_response.json()
 
@@ -103,23 +111,15 @@ async def admin(roles: Dict, group: Group, client: AsyncClient) -> Dict:
 
 
 @pytest_asyncio.fixture(scope="package")
-async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
+async def moderator_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()
 
+    group_id = groups["test_group"].group_id
     role_id: int = roles["moderator_role"].role_id
 
-    moderator_data: Dict = generate_credentials()
-    moderator_data.update(
-        {
-            "name": "test_admin",
-            "surname": "test_surname",
-            "is_blocked": False,
-            "image_s3_path": "stub_path",
-            "role_id": role_id,
-            "group_id": group.group_id,
-        }
-    )
+    moderator_data: Dict = generate_user_data(name="test_moderator", role_id=role_id, group_id=group_id)
+
     signup_response: httpx.Response = await auth_client.signup(client=client, **moderator_data)
     test_moderator = signup_response.json()
 
@@ -134,22 +134,13 @@ async def moderator(roles: Dict, group: Group, client: AsyncClient) -> Dict:
 
 
 @pytest_asyncio.fixture
-async def user_data(roles: Dict, group: Group, client: AsyncClient) -> Dict:
+async def user_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
     auth_client = AuthTestClient()
     user_client = UserTestClient()
 
+    group_id = groups["test_group"].group_id
     role_id = roles["user_role"].role_id
-    data = generate_credentials()
-    data.update(
-        {
-            "name": "test_user",
-            "surname": "test_surname",
-            "is_blocked": False,
-            "image_s3_path": "stub_path",
-            "role_id": role_id,
-            "group_id": group.group_id,
-        }
-    )
+    data = generate_user_data(name="test_user", role_id=role_id, group_id=group_id)
 
     signup_response: httpx.Response = await auth_client.signup(client=client, **data)
     test_user: Dict = signup_response.json()

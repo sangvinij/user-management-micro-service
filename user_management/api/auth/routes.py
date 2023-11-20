@@ -8,7 +8,7 @@ from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
 
 from ...database.models import User
-from ..dependencies import security
+from user_management.api.utils.dependencies import security
 from .exceptions import TokenError
 from .schemas import LoginModel, SignupModel, SignupResponseModel
 
@@ -43,7 +43,7 @@ async def refresh(
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
 
 
-@auth_router.post("/signup", response_model=SignupResponseModel)
+@auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(
     data: Annotated[SignupModel, Body()],
     service: Annotated[AuthService, Depends(AuthService)],

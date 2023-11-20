@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
-from user_management.api.dependencies import admin_or_moderator, admin_user, authenticated_user
+from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
 
 from .schemas import UserDeleteModel, UserListReadModel, UserReadModel, UserUpdateModel
@@ -74,11 +74,17 @@ async def user_list(
     page: int = Query(ge=1, default=1),
     limit: int = Query(ge=1, default=50),
     sort_by: str = Query(default="username"),
-    name: Optional[str] = Query(default=None),
+    filter_by_name: Optional[str] = Query(default=None),
     order_by: str = Query(default="asc"),
 ):
+    """endpoint /users"""
     response = await service.get_list(
-        page=page, limit=limit, sort_field=sort_by, name=name, ord_direction=order_by, authorized_user=authorized_user
+        page=page,
+        limit=limit,
+        sort_field=sort_by,
+        name=filter_by_name,
+        ord_direction=order_by,
+        authorized_user=authorized_user,
     )
 
     return response

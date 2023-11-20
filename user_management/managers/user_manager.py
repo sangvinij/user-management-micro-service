@@ -8,6 +8,7 @@ from sqlalchemy.engine import ScalarResult
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql.selectable import Select
 
+from user_management.api.utils.hashers import PasswordHasher
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
 from user_management.database.models import User
@@ -17,6 +18,7 @@ class UserManager:
     """A class for managing user-related data in a database."""
 
     model = User
+    password_hasher = PasswordHasher()
 
     async def get_by_username(self, username: str) -> Optional[User]:
         """Retrieve a user from the database based on the provided username, phone_number or email."""
@@ -77,9 +79,10 @@ class UserManager:
 
         return result
 
-    async def create(self, user_data: Dict) -> User:
+    async def create_user(self, user_data: Dict) -> User:
         password = user_data.pop("password")
-        hashed_password = pbkdf2_sha256.hash(password)
+
+        hashed_password = self.password_hasher.hash_password(password)
         user_data["password"] = hashed_password
 
         user = self.model(**user_data)

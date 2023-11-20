@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional
+from typing import Dict, Optional
 
 import httpx
 
@@ -39,9 +39,9 @@ class UserTestClient:
     timeout = 20
 
     async def _handle_action(
-        self, url: str, action: str, token: str, client: httpx.AsyncClient, **kwargs
+        self, url: str, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
     ) -> httpx.Response:
-        headers = {"Authorization": f"Bearer {token}"}
+        headers = {"Authorization": f"Bearer {token}"} if token else None
 
         match action:
             case "read":
@@ -55,21 +55,24 @@ class UserTestClient:
 
         return response
 
-    async def rud_current_user(self, action: str, token: str, client: httpx.AsyncClient, **kwargs) -> httpx.Response:
+    async def rud_current_user(
+        self, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
+    ) -> httpx.Response:
         url = f"{self.base_endpoint}/me"
         return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
 
     async def rud_specific_user(
-        self, user_id: uuid.UUID, action: str, token: str, client: httpx.AsyncClient, **kwargs
+        self, user_id: uuid.UUID, action: str, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs
     ) -> httpx.Response:
         url = f"{self.base_endpoint}/{user_id}"
         return await self._handle_action(url=url, action=action, token=token, client=client, **kwargs)
 
-    async def get_users_list(self, access_token: str, client: httpx.AsyncClient, **params) -> httpx.Response:
+    async def get_users_list(self, client: httpx.AsyncClient, token: Optional[str] = None, **kwargs) -> httpx.Response:
+        headers: Optional[Dict] = {"Authorization": f"Bearer {token}"} if token else None
         response: httpx.Response = await client.get(
             f"{self.base_endpoint}s",
-            params=params,
-            headers={"Authorization": f"Bearer {access_token}"},
+            params=kwargs,
+            headers=headers,
             timeout=self.timeout,
         )
         return response
