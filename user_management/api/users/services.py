@@ -13,7 +13,7 @@ from user_management.managers.user_manager import UserManager
 class UserService:
     manager = UserManager()
 
-    async def get_one_user_info(
+    async def read_one_user(
         self, user_id: uuid.UUID, authorized_user: Annotated[User, Depends(admin_or_moderator)]
     ) -> User:
         user: User = await self.manager.get_by_id(user_id)
@@ -34,7 +34,7 @@ class UserService:
         except sqlalchemy.exc.IntegrityError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="user with such credentials already exists or invalid role/group",
+                detail="user with such credentials already exists",
             )
 
         if not updated_user:
@@ -47,7 +47,7 @@ class UserService:
 
         return deleted_user_id
 
-    async def get_list(
+    async def read_user_list(
         self,
         authorized_user: User = Depends(admin_or_moderator),
         page: int = 1,

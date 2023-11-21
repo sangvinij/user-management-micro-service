@@ -26,7 +26,7 @@ class AuthService:
             created_user: User = await self.manager.create_user(user.model_dump())
         except sqlalchemy.exc.IntegrityError:
             raise HTTPException(
-                status_code=400, detail="user with such credentials already exists or invalid role/group"
+                status_code=400, detail="user with such credentials already exists"
             )
 
         return created_user

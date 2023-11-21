@@ -36,12 +36,12 @@ async def delete_me(
 
 
 @user_router.get("/{user_id}", response_model=UserReadModel, status_code=status.HTTP_200_OK)
-async def read_one_user(
+async def one_user(
     user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
     authorized_user: Annotated[User, Depends(admin_or_moderator)],
 ):
-    user: User = await service.get_one_user_info(user_id=user_id, authorized_user=authorized_user)
+    user: User = await service.read_one_user(user_id=user_id, authorized_user=authorized_user)
 
     return user
 
@@ -80,7 +80,7 @@ async def user_list(
     order_by: str = Query(default="asc"),
 ):
     """Endpoint '/users'"""
-    response: Dict = await service.get_list(
+    response: Dict = await service.read_user_list(
         page=page,
         limit=limit,
         sort_field=sort_by,
