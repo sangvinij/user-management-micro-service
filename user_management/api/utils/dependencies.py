@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security.oauth2 import OAuth2PasswordBearer
 
-from user_management.api.auth.exceptions import TokenError
 from user_management.api.auth.tokens import AuthToken
+from user_management.api.utils.exceptions import PermissionHTTPException, TokenError
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager
 
@@ -41,7 +41,22 @@ async def admin_user(
     )
 
     if user.role.role_name != "ADMIN":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
+        raise PermissionHTTPException()
+
+    return user
+
+
+async def moderator_user(
+    access_token: Annotated[str, Depends(security)],
+    user_manager: Annotated[UserManager, Depends(UserManager)],
+    token_service: Annotated[AuthToken, Depends(AuthToken)],
+) -> User:
+    user: User = await authenticated_user(
+        access_token=access_token, user_manager=user_manager, token_service=token_service
+    )
+
+    if user.role.role_name != "MODERATOR":
+        raise PermissionHTTPException()
 
     return user
 
@@ -51,11 +66,13 @@ async def admin_or_moderator(
     user_manager: Annotated[UserManager, Depends(UserManager)],
     token_service: Annotated[AuthToken, Depends(AuthToken)],
 ) -> User:
-    user: User = await authenticated_user(
-        access_token=access_token, user_manager=user_manager, token_service=token_service
-    )
+    try:
+        authorized_user: User = await admin_user(
+            access_token=access_token, user_manager=user_manager, token_service=token_service
+        )
+    except PermissionHTTPException:
+        authorized_user: User = await moderator_user(
+            access_token=access_token, user_manager=user_manager, token_service=token_service
+        )
 
-    if user.role.role_name not in ("ADMIN", "MODERATOR"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
-
-    return user
+    return authorized_user

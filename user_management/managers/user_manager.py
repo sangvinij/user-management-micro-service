@@ -51,11 +51,11 @@ class UserManager:
     async def get_all(
         self,
         offset: int,
-        authorized_user: User,
         limit: int = 50,
         name: Optional[str] = None,
         sort_field: Optional[str] = None,
         ord_direction: str = "asc",
+        moderator: Optional[User] = None,
     ) -> Dict:
         query: Select = select(self.model).limit(limit=limit).offset(offset=offset)
         total_count_query: Select = select(func.count()).select_from(self.model)
@@ -66,9 +66,9 @@ class UserManager:
         if name:
             query = query.filter(self.model.name.ilike(f"%{name}%"))
 
-        if authorized_user.role.role_name == "MODERATOR":
-            query = query.filter(self.model.group_id == authorized_user.group.group_id)
-            total_count_query = total_count_query.filter(self.model.group_id == authorized_user.group_id)
+        if moderator:
+            query = query.filter(self.model.group_id == moderator.group.group_id)
+            total_count_query = total_count_query.filter(self.model.group_id == moderator.group_id)
 
         async with async_session_maker() as session:
             users: ScalarResult = await session.scalars(query)

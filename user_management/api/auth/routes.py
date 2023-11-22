@@ -9,7 +9,7 @@ from user_management.api.auth.tokens import AuthToken
 from user_management.api.utils.dependencies import security
 
 from ...database.models import User
-from .exceptions import TokenError
+from ..utils.exceptions import TokenError
 from .schemas import LoginModel, SignupModel, SignupResponseModel
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])

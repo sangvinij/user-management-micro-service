@@ -1,11 +1,14 @@
 import uuid
-from typing import Annotated, Dict, Optional
+from typing import Dict, Optional
 
 import sqlalchemy.exc
-from fastapi import Depends, HTTPException, status
 
 from user_management.api.users.schemas import UserUpdateModel
-from user_management.api.utils.dependencies import admin_or_moderator
+from user_management.api.utils.exceptions import (
+    AlreadyExistsHTTPException,
+    NotFoundHTTPException,
+    PermissionHTTPException,
+)
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager
 
@@ -13,15 +16,13 @@ from user_management.managers.user_manager import UserManager
 class UserService:
     manager = UserManager()
 
-    async def read_one_user(
-        self, user_id: uuid.UUID, authorized_user: Annotated[User, Depends(admin_or_moderator)]
-    ) -> User:
+    async def read_one_user(self, user_id: uuid.UUID, authorized_user: User) -> User:
         user: User = await self.manager.get_by_id(user_id)
         if authorized_user.role.role_name == "MODERATOR" and authorized_user.group_id != user.group_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permissions")
+            raise PermissionHTTPException()
 
         if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+            raise NotFoundHTTPException()
 
         return user
 
@@ -32,13 +33,12 @@ class UserService:
             )
 
         except sqlalchemy.exc.IntegrityError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+            raise AlreadyExistsHTTPException(
                 detail="user with such credentials already exists",
             )
 
         if not updated_user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
+            raise NotFoundHTTPException()
 
         return updated_user
 
@@ -49,7 +49,7 @@ class UserService:
 
     async def read_user_list(
         self,
-        authorized_user: User = Depends(admin_or_moderator),
+        authorized_user: User,
         page: int = 1,
         limit: int = 50,
         name: Optional[str] = None,
@@ -58,19 +58,21 @@ class UserService:
     ):
         offset: int = (page - 1) * limit
 
+        moderator: Optional[User] = authorized_user if authorized_user.role.role_name == "MODERATOR" else None
+
         result: Dict = await self.manager.get_all(
             limit=limit,
             offset=offset,
             name=name,
             sort_field=sort_field,
             ord_direction=ord_direction,
-            authorized_user=authorized_user,
+            moderator=moderator,
         )
 
         total_pages: int = (result["total_count"] + limit - 1) // limit
 
         if page > total_pages:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="page not found")
+            raise NotFoundHTTPException(detail="page not found")
 
         result.update({"page": page, "limit": limit, "total_pages": total_pages})
 

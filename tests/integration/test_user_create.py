@@ -49,7 +49,7 @@ class TestUserCreate:
         created_user: SignupResponseModel = SignupResponseModel(**response.json())
 
         failed_response: httpx.Response = await self.auth_client.signup(client=client, **user_data)
-        assert failed_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert failed_response.status_code == status.HTTP_409_CONFLICT
         assert failed_response.json() == {"detail": "user with such credentials already exists"}
 
         await self.user_client.rud_specific_user(
