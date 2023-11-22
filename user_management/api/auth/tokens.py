@@ -7,7 +7,7 @@ import redis.exceptions
 from fakeredis.aioredis import FakeRedis
 from redis.asyncio import Redis
 
-from user_management.api.auth.exceptions import TokenError
+from user_management.api.utils.exceptions import TokenError
 from user_management.redis_settings import get_redis_client
 
 from ...config import config

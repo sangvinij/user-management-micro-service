@@ -4,7 +4,7 @@ import uuid
 import jwt
 import pytest
 
-from user_management.api.auth.exceptions import TokenError
+from user_management.api.utils.exceptions import TokenError
 from user_management.api.auth.tokens import AuthToken
 from user_management.config import config
 
