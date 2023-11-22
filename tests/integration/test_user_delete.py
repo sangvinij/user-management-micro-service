@@ -12,7 +12,7 @@ class TestUserDelete:
     user_client = UserTestClient()
 
     @pytest.mark.asyncio
-    async def test_user_id_update_endpoint_inaccessible_for_unauthorized(self, user_data: Dict, client: AsyncClient):
+    async def test_user_id_delete_endpoint_inaccessible_for_unauthorized(self, user_data: Dict, client: AsyncClient):
         user: Dict = user_data["user"]
         response: httpx.Response = await self.user_client.rud_specific_user(
             action="delete", user_id=user["user_id"], superuser_token=None, client=client
@@ -22,7 +22,7 @@ class TestUserDelete:
         assert response.json() == {"detail": "Not authenticated"}
 
     @pytest.mark.asyncio
-    async def test_user_id_update_endpoint_inaccessible_for_non_admin(self, user_data: Dict, client: AsyncClient):
+    async def test_user_id_delete_endpoint_inaccessible_for_non_admin(self, user_data: Dict, client: AsyncClient):
         user: Dict = user_data["user"]
         access_token = user_data["access_token"]
         failed_response: httpx.Response = await self.user_client.rud_specific_user(
