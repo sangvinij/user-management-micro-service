@@ -24,7 +24,7 @@ class TestUserDelete:
     @pytest.mark.asyncio
     async def test_user_id_delete_endpoint_inaccessible_for_non_admin(self, user_data: Dict, client: AsyncClient):
         user: Dict = user_data["user"]
-        access_token = user_data["access_token"]
+        access_token: str = user_data["access_token"]
         failed_response: httpx.Response = await self.user_client.rud_specific_user(
             action="delete",
             user_id=user["user_id"],
@@ -40,7 +40,7 @@ class TestUserDelete:
     async def test_delete_user(self, user_data: Dict, client: AsyncClient, admin_data: Dict):
         admin_token: str = admin_data["admin_token"]
 
-        user = user_data["user"]
+        user: Dict = user_data["user"]
 
         response: httpx.Response = await self.user_client.rud_specific_user(
             action="delete",
@@ -56,7 +56,7 @@ class TestUserDelete:
     async def test_delete_current_user(self, user_data: Dict, client: AsyncClient):
         access_token: str = user_data["access_token"]
 
-        user = user_data["user"]
+        user: Dict = user_data["user"]
 
         response: httpx.Response = await self.user_client.rud_current_user(
             action="delete",
