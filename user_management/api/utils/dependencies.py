@@ -25,6 +25,9 @@ async def authenticated_user(
 
     user: User = await user_manager.get_by_id(user_id=user_id)
 
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="user does not exists")
+
     if user.is_blocked:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="user is blocked")
 
@@ -46,7 +49,7 @@ async def admin_user(
     return user
 
 
-async def moderator_user(
+async def admin_or_moderator(
     access_token: Annotated[str, Depends(security)],
     user_manager: Annotated[UserManager, Depends(UserManager)],
     token_service: Annotated[AuthToken, Depends(AuthToken)],
@@ -55,24 +58,7 @@ async def moderator_user(
         access_token=access_token, user_manager=user_manager, token_service=token_service
     )
 
-    if user.role.role_name != "MODERATOR":
+    if user.role.role_name not in ("ADMIN", "MODERATOR"):
         raise PermissionHTTPException()
 
     return user
-
-
-async def admin_or_moderator(
-    access_token: Annotated[str, Depends(security)],
-    user_manager: Annotated[UserManager, Depends(UserManager)],
-    token_service: Annotated[AuthToken, Depends(AuthToken)],
-) -> User:
-    try:
-        authorized_user: User = await admin_user(
-            access_token=access_token, user_manager=user_manager, token_service=token_service
-        )
-    except PermissionHTTPException:
-        authorized_user: User = await moderator_user(
-            access_token=access_token, user_manager=user_manager, token_service=token_service
-        )
-
-    return authorized_user

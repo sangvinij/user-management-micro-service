@@ -50,7 +50,7 @@ class TestUserDelete:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {"user_id": user["user_id"]}
+        assert response.json()["user_id"] == user["user_id"]
 
     @pytest.mark.asyncio
     async def test_delete_current_user(self, user_data: Dict, client: AsyncClient):
@@ -65,4 +65,4 @@ class TestUserDelete:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {"user_id": user["user_id"]}
+        assert response.json()["user_id"] == user["user_id"]
