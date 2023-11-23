@@ -4,8 +4,12 @@ from fastapi import HTTPException, status
 from user_management.api.auth.schemas import SignupModel
 from user_management.api.utils.exceptions import AlreadyExistsHTTPException
 from user_management.api.utils.hashers import PasswordHasher
+from user_management.aws_settings import AWSSettings
 from user_management.database.models.user import User
 from user_management.managers.user_manager import UserManager
+
+from pydantic import EmailStr
+import aioboto3
 
 
 class AuthService:
@@ -31,3 +35,11 @@ class AuthService:
             )
 
         return created_user
+
+    @staticmethod
+    async def reset_password(address: EmailStr, ses: aioboto3.Session.client):
+        aws_service = AWSSettings(aws_client=ses)
+
+        rs = await aws_service.send_mail(subject_text='fas', message_text='sfa', addresses=(address,))
+
+        return rs

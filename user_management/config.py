@@ -2,6 +2,7 @@ from typing import List
 
 import pytz
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import EmailStr
 
 
 class Settings(BaseSettings):
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_HOST: str
     REDIS_DB_NUM: int
+    SOURCE_EMAIL: EmailStr
 
     @property
     def db_url(self) -> str:

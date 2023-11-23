@@ -25,3 +25,7 @@ class SignupModel(BaseModel):
 class SignupResponseModel(SignupModel):
     user_id: uuid.UUID
     password: Optional[str] = Field(exclude=True, default=None)
+
+
+class ResetPasswordRequestModel(BaseModel):
+    email: EmailStr

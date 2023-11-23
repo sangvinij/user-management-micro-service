@@ -1,6 +1,8 @@
 import uuid
-from typing import Dict, Optional
+from typing import Dict, Optional, Annotated
 
+import aioboto3
+from pydantic import EmailStr
 import sqlalchemy.exc
 
 from user_management.api.users.schemas import UserUpdateModel
@@ -9,6 +11,8 @@ from user_management.api.utils.exceptions import (
     NotFoundHTTPException,
     PermissionHTTPException,
 )
+from fastapi import Depends
+from user_management.aws_settings import AWSSettings, get_aws_ses_client
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager
 

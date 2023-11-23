@@ -41,6 +41,24 @@ services:
       retries: 5
       start_period: 5s
 
+  localstack:
+    container_name: user_management_localstack
+    image: localstack/localstack:1.4.0
+    ports:
+      - "${LOCALSTACK_PORT}:4566"
+    volumes:
+      - .local/services/localstack:/var/lib/localstack/
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:4566/_localstack/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+    networks:
+      - user_management
+
   webapp:
     build:
       args:
@@ -51,16 +69,8 @@ services:
       context: .
     container_name: user_management_webapp
     image: user_management_webapp:latest
-    environment:
-      DB_ENGINE: ${DB_ENGINE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      WEBAPP_TEST_HOST: ${WEBAPP_TEST_HOST}
+    env_file:
+      - .env
     networks:
       - user_management
     ports:
