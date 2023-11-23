@@ -30,8 +30,8 @@ class User(Base):
     group_id: Mapped[int] = mapped_column(ForeignKey("group.group_id"))
     role_id: Mapped[int] = mapped_column(ForeignKey("role.role_id"))
 
-    role = relationship("Role", back_populates="user", uselist=False)
-    group = relationship("Group", back_populates="user", uselist=False)
+    role = relationship("Role", back_populates="user", uselist=False, lazy="joined")
+    group = relationship("Group", back_populates="user", uselist=False, lazy="joined")
 
     def __str__(self):
         return f"{self.username}"

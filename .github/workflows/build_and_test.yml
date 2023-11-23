@@ -8,6 +8,11 @@ env:
   DB_NAME: ${{ secrets.DB_NAME }}
   DB_HOST: ${{ secrets.DB_HOST }}
   DB_PORT: ${{ secrets.DB_PORT }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  REDIS_DB_NUM: ${{ secrets.REDIS_DB_NUM }}
 
   ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
   WEBAPP_TEST_HOST: ${{ secrets.WEBAPP_TEST_HOST }}
@@ -73,4 +78,4 @@ jobs:
         run: poetry install
 
       - name: Run tests
-        run: poetry run pytest tests/unit || exit 0
+        run: poetry run pytest tests/unit

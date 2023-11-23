@@ -1,16 +1,17 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from fastapi.security.oauth2 import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
+from user_management.api.utils.dependencies import security
 
-from .exceptions import TokenError
-from .schemas import LoginModel
+from ...database.models import User
+from ..utils.exceptions import TokenError
+from .schemas import LoginModel, SignupModel, SignupResponseModel
 
-security = OAuth2PasswordBearer(tokenUrl="auth/login")
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
@@ -40,3 +41,13 @@ async def refresh(
     response = LoginModel(access_token=new_access_token, refresh_token=new_refresh_token)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
+
+
+@auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
+async def create_user(
+    data: Annotated[SignupModel, Body()],
+    service: Annotated[AuthService, Depends(AuthService)],
+):
+    created_user: User = await service.signup(data)
+
+    return created_user
