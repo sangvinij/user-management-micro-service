@@ -2,6 +2,7 @@ import datetime
 import uuid
 from typing import Dict, Optional
 
+from pydantic import EmailStr
 from sqlalchemy import delete, desc, func, or_, select
 from sqlalchemy.engine import ScalarResult
 from sqlalchemy.exc import NoResultFound
@@ -33,6 +34,15 @@ class UserManager:
                     )
                 )
 
+            except NoResultFound:
+                user = None
+
+        return user
+
+    async def get_by_email(self, email: EmailStr) -> Optional[User]:
+        async with async_session_maker() as session:
+            try:
+                user = await session.scalar(select(self.model).filter_by(email=email))
             except NoResultFound:
                 user = None
 
@@ -94,6 +104,12 @@ class UserManager:
 
     async def update_user(self, user_id: uuid.UUID, user_data: Dict) -> Optional[User]:
         user: User = await self.get_by_id(user_id)
+
+        if "password" in user_data:
+            password = user_data.pop("password")
+
+            hashed_password = self.password_hasher.hash_password(password)
+            user_data["password"] = hashed_password
 
         if user is None:
             return None

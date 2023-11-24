@@ -1,7 +1,8 @@
-from typing import List, Tuple
+from typing import List
 
 import aioboto3
 from pydantic import EmailStr
+
 from user_management.config import config
 
 session = aioboto3.Session()
@@ -9,30 +10,30 @@ session = aioboto3.Session()
 
 async def get_aws_ses_client():
     async with session.client(
-            "ses",
-            endpoint_url="https://localhost:4566",
-            aws_access_key_id="self.aws_access_key_id",
-            aws_secret_access_key="self.aws_secret_access_key",
-            region_name="eu-central-1",
+        "ses",
+        endpoint_url=config.LOCALSTACK_HOST,
+        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+        region_name=config.AWS_REGION_NAME,
     ) as ses:
         yield ses
 
 
-# async def get_aws_s3_client():
-#     async with self.session.client(
-#         "s3",
-#         endpoint_url=self.endpoint_url,
-#         aws_access_key_id=self.aws_access_key_id,
-#         aws_secret_access_key=self.aws_secret_access_key,
-#     ) as s3:
-#         yield s3
+async def get_aws_s3_client():
+    async with session.client(
+        "s3",
+        endpoint_url=config.LOCALSTACK_HOST,
+        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
+    ) as s3:
+        yield s3
 
 
 class AWSSettings:
-    def __init__(self, aws_client):
+    def __init__(self, aws_client: aioboto3.Session.client):
         self.aws_client: aioboto3.Session.client = aws_client
 
-    async def send_mail(self, message_text: str, subject_text: str, addresses: Tuple[EmailStr]):
+    async def send_mail(self, message_text: str, subject_text: str, addresses: List[EmailStr]):
         await self.aws_client.verify_email_identity(EmailAddress=config.SOURCE_EMAIL)
 
         rs = await self.aws_client.send_email(

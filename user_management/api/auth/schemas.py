@@ -27,5 +27,11 @@ class SignupResponseModel(SignupModel):
     password: Optional[str] = Field(exclude=True, default=None)
 
 
-class ResetPasswordRequestModel(BaseModel):
+class ResetPasswordModel(BaseModel):
     email: EmailStr
+
+
+class ResetPasswordConfirmModel(BaseModel):
+    token: str
+    password: str
+    password_retype: str

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
+
 from .schemas import UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
 

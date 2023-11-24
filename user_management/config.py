@@ -1,8 +1,8 @@
 from typing import List
 
 import pytz
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import EmailStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_DB_NUM: int
     SOURCE_EMAIL: EmailStr
+    WEBAPP_HOST: str
+    LOCALSTACK_HOST: str
+    LOCALSTACK_PORT: int
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION_NAME: str
 
     @property
     def db_url(self) -> str:
