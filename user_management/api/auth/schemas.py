@@ -16,7 +16,6 @@ class SignupModel(BaseModel):
     password: str = Field(min_length=5)
     phone_number: str
     email: EmailStr
-    image_s3_path: str
     is_blocked: bool = False
     role_id: int
     group_id: int
@@ -25,6 +24,7 @@ class SignupModel(BaseModel):
 class SignupResponseModel(SignupModel):
     user_id: uuid.UUID
     password: Optional[str] = Field(exclude=True, default=None)
+    image_s3_path: str
 
 
 class ResetPasswordModel(BaseModel):

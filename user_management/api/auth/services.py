@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import aioboto3
 import sqlalchemy.exc
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from redis.asyncio import Redis
@@ -34,9 +34,16 @@ class AuthService:
 
         return user
 
-    async def signup(self, user: SignupModel) -> User:
+    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
+        aws_service: AWSSettings = AWSSettings(aws_client=s3)
+        rs = await aws_service.upload_image(key=user.username, file=file)
+
+        user_data = user.model_dump()
+
+        user_data["image_s3_path"] = "test_image_path"
+
         try:
-            created_user: User = await self.manager.create_user(user.model_dump())
+            created_user: User = await self.manager.create_user(user_data=user_data)
         except sqlalchemy.exc.IntegrityError:
             raise AlreadyExistsHTTPException(
                 detail="user with such credentials already exists",
@@ -91,3 +98,8 @@ class AuthService:
         await self.manager.update_user(user_id=user_id, user_data={"password": password})
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": "password changed successfully"})
+
+    # async def get_image_s3_path(self, s3):
+    #     aws_service: AWSSettings = AWSSettings(aws_client=s3)
+    #
+    #     await
