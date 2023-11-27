@@ -67,7 +67,6 @@ class TestUserUpdate:
         assert updated_user.email == update_data["email"]
         assert updated_user.username == update_data["username"]
         assert updated_user.surname == update_data["surname"]
-        assert updated_user.image_s3_path == update_data["image_s3_path"]
         assert updated_user.is_blocked == update_data["is_blocked"]
 
     @pytest.mark.asyncio
@@ -91,5 +90,4 @@ class TestUserUpdate:
         assert updated_user.email == update_data["email"]
         assert updated_user.username == update_data["username"]
         assert updated_user.surname == update_data["surname"]
-        assert updated_user.image_s3_path == update_data["image_s3_path"]
         assert updated_user.is_blocked == update_data["is_blocked"]

@@ -1,6 +1,7 @@
 import uuid
 from typing import Annotated, Dict, Optional
 
+import aioboto3
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
 from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
@@ -8,6 +9,7 @@ from user_management.database.models import User
 
 from .schemas import UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
+from ...aws.settings import get_aws_s3_client
 
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])
 
@@ -21,9 +23,12 @@ async def me(user: Annotated[User, Depends(authenticated_user)]):
 async def update_me(
     user: Annotated[User, Depends(authenticated_user)],
     service: Annotated[UserService, Depends(UserService)],
-    data: Annotated[UserUpdateModel, Body()],
+    data: Annotated[UserUpdateModel, Depends()],
+    s3: Annotated[aioboto3.Session.client, get_aws_s3_client],
 ):
-    updated_user: User = await service.update_user(user_id=user.user_id, user_data=data)
+    updated_user: User = await service.update_user(
+        user_id=user.user_id, user_data=data.model_dump(exclude_none=True), s3=s3
+    )
     return updated_user
 
 
@@ -52,9 +57,10 @@ async def one_user(
 async def update_one_user(
     user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
-    data: Annotated[UserUpdateModel, Body()],
+    data: Annotated[UserUpdateModel, Depends()],
+    s3: Annotated[aioboto3.Session.client, get_aws_s3_client],
 ):
-    user: User = await service.update_user(user_id=user_id, user_data=data)
+    user: User = await service.update_user(user_id=user_id, user_data=data.model_dump(exclude_none=True), s3=s3)
 
     return user
 

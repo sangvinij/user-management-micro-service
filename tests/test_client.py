@@ -2,6 +2,7 @@ import uuid
 from typing import Dict, Optional
 
 import httpx
+from pydantic import EmailStr
 
 
 class AuthTestClient:
@@ -10,6 +11,8 @@ class AuthTestClient:
     auth_endpoint = r"/auth/login"
     refresh_endpoint = r"auth/refresh-token"
     signup_endpoint = r"auth/signup"
+    reset_password_endpoint = r"auth/reset_password"
+    reset_password_confirm_endpoint = r"auth/reset_password_confirm"
 
     timeout = 20
 
@@ -27,7 +30,22 @@ class AuthTestClient:
         return response
 
     async def signup(self, client: httpx.AsyncClient, **kwargs) -> httpx.Response:
-        response: httpx.Response = await client.post(url=self.signup_endpoint, json=kwargs, timeout=self.timeout)
+        response: httpx.Response = await client.post(url=self.signup_endpoint, data=kwargs, timeout=self.timeout)
+
+        return response
+
+    async def reset_password(self, client: httpx.AsyncClient, email: EmailStr) -> httpx.Response:
+        response: httpx.Response = await client.post(
+            url=self.reset_password_endpoint, json={"email": email}, timeout=self.timeout
+        )
+
+        return response
+
+    async def reset_password_confirm(self, client: httpx.AsyncClient, password: str, password_retype: str, token: str):
+        response: httpx.Response = await client.post(
+            url=self.reset_password_confirm_endpoint,
+            json={"password": password, "password_retype": password_retype, "token": token},
+        )
 
         return response
 
@@ -48,7 +66,7 @@ class UserTestClient:
             case "read":
                 response = await client.get(url=url, headers=headers, timeout=self.timeout)
             case "update":
-                response = await client.patch(url=url, headers=headers, timeout=self.timeout, json=kwargs)
+                response = await client.patch(url=url, headers=headers, timeout=self.timeout, data=kwargs)
             case "delete":
                 response = await client.delete(url=url, headers=headers, timeout=self.timeout)
             case _:

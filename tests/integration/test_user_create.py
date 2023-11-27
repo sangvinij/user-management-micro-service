@@ -29,7 +29,6 @@ class TestUserCreate:
         assert created_user.email == user_data["email"]
         assert created_user.username == user_data["username"]
         assert created_user.surname == user_data["surname"]
-        assert created_user.image_s3_path == user_data["image_s3_path"]
         assert created_user.is_blocked == user_data["is_blocked"]
         assert created_user.role_id == user_data["role_id"]
         assert created_user.group_id == user_data["group_id"]

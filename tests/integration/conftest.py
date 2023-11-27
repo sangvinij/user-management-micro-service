@@ -7,6 +7,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+from PIL import Image
 from sqlalchemy import delete, or_
 
 from tests.test_client import AuthTestClient, UserTestClient
@@ -71,6 +72,7 @@ def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool 
     password: str = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
     username: str = "test_".join(secrets.choice(string.ascii_lowercase) for _ in range(8))
     phone_number: str = "+37529" + "".join(secrets.choice(string.digits) for _ in range(7))
+    file: Image = Image.new("RGB", (100, 100), color="white")
     return {
         "name": name,
         "surname": surname,
@@ -78,7 +80,7 @@ def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool 
         "password": password,
         "username": username,
         "phone_number": phone_number,
-        "image_s3_path": "stub_path",
+        "file": file,
         "group_id": group_id,
         "role_id": role_id,
         "is_blocked": is_blocked,

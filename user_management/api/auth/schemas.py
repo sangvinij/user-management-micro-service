@@ -1,6 +1,7 @@
 import uuid
 from typing import Optional
 
+from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -19,6 +20,7 @@ class SignupModel(BaseModel):
     is_blocked: bool = False
     role_id: int
     group_id: int
+    file: UploadFile = Field(exclude=True)
 
 
 class SignupResponseModel(SignupModel):

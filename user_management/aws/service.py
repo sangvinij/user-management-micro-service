@@ -1,33 +1,10 @@
-from typing import List, Dict
+from typing import List
 
 import aioboto3
 from fastapi import UploadFile
 from pydantic import EmailStr
 
 from user_management.config import config
-
-session = aioboto3.Session()
-
-
-async def get_aws_ses_client():
-    async with session.client(
-        "ses",
-        endpoint_url=config.LOCALSTACK_HOST,
-        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-        region_name=config.AWS_REGION_NAME,
-    ) as ses:
-        yield ses
-
-
-async def get_aws_s3_client():
-    async with session.client(
-        "s3",
-        endpoint_url=f"{config.LOCALSTACK_HOST}:{config.LOCALSTACK_PORT}",
-        aws_access_key_id=config.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY,
-    ) as s3:
-        yield s3
 
 
 class AWSSettings:
@@ -57,10 +34,9 @@ class AWSSettings:
         return rs
 
     async def upload_image(self, file: UploadFile, key: str) -> str:
+        await self.aws_client.create_bucket(Bucket=config.AWS_S3_BUCKET_NAME)
 
-        bucket = await self.aws_client.create_bucket(Bucket=config.AWS_S3_BUCKET_NAME)
-
-        rs = await self.aws_client.upload_fileobj(file, config.AWS_S3_BUCKET_NAME, key)
+        await self.aws_client.upload_fileobj(file, config.AWS_S3_BUCKET_NAME, key)
 
         image_s3_path: str = f"{config.LOCALSTACK_HOST}:{config.LOCALSTACK_PORT}/{config.AWS_S3_BUCKET}/{key}"
 

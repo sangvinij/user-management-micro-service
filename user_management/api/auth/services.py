@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import aioboto3
 import sqlalchemy.exc
-from fastapi import HTTPException, UploadFile, status
+from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from redis.asyncio import Redis
@@ -12,7 +12,7 @@ from redis.asyncio import Redis
 from user_management.api.auth.schemas import SignupModel
 from user_management.api.utils.exceptions import AlreadyExistsHTTPException, NotFoundHTTPException
 from user_management.api.utils.hashers import PasswordHasher, ResetPasswordTokenHasher
-from user_management.aws_settings import AWSSettings
+from user_management.aws.service import AWSSettings
 from user_management.config import config
 from user_management.database.models.user import User
 from user_management.managers.user_manager import UserManager
@@ -34,9 +34,9 @@ class AuthService:
 
         return user
 
-    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
+    async def signup(self, user: SignupModel, s3: aioboto3.Session.client) -> User:
         aws_service: AWSSettings = AWSSettings(aws_client=s3)
-        rs = await aws_service.upload_image(key=user.username, file=file)
+        await aws_service.upload_image(key=user.username, file=user.file)
 
         user_data = user.model_dump()
 
@@ -98,8 +98,3 @@ class AuthService:
         await self.manager.update_user(user_id=user_id, user_data={"password": password})
 
         return JSONResponse(status_code=status.HTTP_200_OK, content={"detail": "password changed successfully"})
-
-    # async def get_image_s3_path(self, s3):
-    #     aws_service: AWSSettings = AWSSettings(aws_client=s3)
-    #
-    #     await

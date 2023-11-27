@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from black import List
+from fastapi import UploadFile
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -46,7 +47,7 @@ class UserUpdateModel(BaseModel):
     username: Optional[str] = Field(min_length=1, default=None)
     phone_number: Optional[str] = Field(min_length=1, default=None)
     email: Optional[EmailStr] = None
-    image_s3_path: Optional[str] = Field(min_length=1, default=None)
+    file: UploadFile = None
     is_blocked: Optional[bool] = None
     role_id: Optional[int] = None
     group_id: Optional[int] = None
