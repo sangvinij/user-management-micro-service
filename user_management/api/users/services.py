@@ -28,12 +28,14 @@ class UserService:
 
         return user
 
-    async def update_user(self, user_id: uuid.UUID, user_data: Dict, s3: aioboto3.Session.client) -> User:
-        if "file" in user_data:
-            file: UploadFile = user_data.pop("file")
+    async def update_user(
+        self, user_id: uuid.UUID, user_data: Dict, s3: aioboto3.Session.client, file: Optional[UploadFile] = None
+    ) -> User:
+        if file:
             aws_service: AWSSettings = AWSSettings(aws_client=s3)
             user: User = await self.manager.get_by_id(user_id)
-            image_s3_path: str = await aws_service.upload_image(key=user.username, file=file)
+            key: str = user_data["username"] if "username" in user_data else user.username
+            image_s3_path: str = await aws_service.upload_image(key=key, file=file)
             user_data["image_s3_path"] = image_s3_path
 
         try:

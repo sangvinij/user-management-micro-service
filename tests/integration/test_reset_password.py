@@ -55,7 +55,7 @@ class TestResetPassword:
 
         assert get_token_response.status_code == status.HTTP_200_OK
         assert "access_token" in get_token_response.json()
-        assert "refresh token" in get_token_response.json()
+        assert "refresh_token" in get_token_response.json()
 
     @pytest.mark.asyncio
     async def test_reset_password_mismatched(self, user_data: Dict, client: httpx.AsyncClient):
@@ -74,7 +74,7 @@ class TestResetPassword:
         )
 
         assert reset_password_response.status_code == status.HTTP_400_BAD_REQUEST
-        assert reset_password_response.json() == {"detail": "passwords do not match"}
+        assert reset_password_response.json() == {"detail": "Passwords do not match"}
 
     @pytest.mark.asyncio
     async def test_reset_password_with_wrong_token(self, client: httpx.AsyncClient):

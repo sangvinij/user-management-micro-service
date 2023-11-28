@@ -1,15 +1,15 @@
 from typing import Annotated, Dict
 
 import aioboto3
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
 from user_management.api.utils.dependencies import security
-
 from user_management.aws.settings import get_aws_s3_client, get_aws_ses_client
+
 from ...database.models import User
 from ..utils.exceptions import TokenError
 from .schemas import LoginModel, ResetPasswordConfirmModel, ResetPasswordModel, SignupModel, SignupResponseModel
@@ -47,11 +47,12 @@ async def refresh(
 
 @auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    data: Annotated[SignupModel, Depends()],
+    file: Annotated[UploadFile, File(...)],
+    data: Annotated[SignupModel, Depends(SignupModel.as_form)],
     service: Annotated[AuthService, Depends(AuthService)],
     s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
 ):
-    created_user: User = await service.signup(user=data, s3=s3)
+    created_user: User = await service.signup(user=data, file=file, s3=s3)
 
     return created_user
 

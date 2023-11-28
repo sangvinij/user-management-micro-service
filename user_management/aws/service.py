@@ -38,6 +38,6 @@ class AWSSettings:
 
         await self.aws_client.upload_fileobj(file, config.AWS_S3_BUCKET_NAME, key)
 
-        image_s3_path: str = f"{config.LOCALSTACK_HOST}:{config.LOCALSTACK_PORT}/{config.AWS_S3_BUCKET}/{key}"
+        image_s3_path: str = f"{config.LOCALSTACK_HOST}:{config.LOCALSTACK_PORT}/{config.AWS_S3_BUCKET_NAME}/{key}"
 
         return image_s3_path

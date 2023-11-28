@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import aioboto3
 import sqlalchemy.exc
-from fastapi import HTTPException, status
+from fastapi import HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from redis.asyncio import Redis
@@ -34,13 +34,13 @@ class AuthService:
 
         return user
 
-    async def signup(self, user: SignupModel, s3: aioboto3.Session.client) -> User:
+    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
         aws_service: AWSSettings = AWSSettings(aws_client=s3)
-        await aws_service.upload_image(key=user.username, file=user.file)
+        image_s3_path = await aws_service.upload_image(key=user.username, file=file)
 
         user_data = user.model_dump()
 
-        user_data["image_s3_path"] = "test_image_path"
+        user_data["image_s3_path"] = image_s3_path
 
         try:
             created_user: User = await self.manager.create_user(user_data=user_data)
