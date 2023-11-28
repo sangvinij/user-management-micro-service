@@ -12,7 +12,7 @@ from redis.asyncio import Redis
 from user_management.api.auth.schemas import SignupModel
 from user_management.api.utils.exceptions import AlreadyExistsHTTPException, NotFoundHTTPException
 from user_management.api.utils.hashers import PasswordHasher, ResetPasswordTokenHasher
-from user_management.aws.service import AWSSettings
+from user_management.aws.service import AWSService
 from user_management.config import config
 from user_management.database.models.user import User
 from user_management.managers.user_manager import UserManager
@@ -35,7 +35,7 @@ class AuthService:
         return user
 
     async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
-        aws_service: AWSSettings = AWSSettings(aws_client=s3)
+        aws_service: AWSService = AWSService(aws_client=s3)
         image_s3_path = await aws_service.upload_image(key=user.username, file=file)
 
         user_data = user.model_dump()
@@ -68,7 +68,7 @@ class AuthService:
         await redis_client.set(token, str(user_id))
 
     async def reset_password(self, email: EmailStr, ses: aioboto3.Session.client) -> Dict:
-        aws_service: AWSSettings = AWSSettings(aws_client=ses)
+        aws_service: AWSService = AWSService(aws_client=ses)
         user: Optional[User] = await self.manager.get_by_email(email=email)
 
         token: str = self.generate_password_reset_token()

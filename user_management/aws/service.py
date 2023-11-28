@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from user_management.config import config
 
 
-class AWSSettings:
+class AWSService:
     def __init__(self, aws_client: aioboto3.Session.client):
         self.aws_client: aioboto3.Session.client = aws_client
 
