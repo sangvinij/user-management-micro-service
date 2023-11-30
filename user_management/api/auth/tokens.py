@@ -11,6 +11,7 @@ from user_management.api.utils.exceptions import TokenError
 from user_management.redis_settings import get_redis_client
 
 from ...config import config
+from ...logger_settings import logger
 
 
 class AuthToken:
@@ -25,12 +26,14 @@ class AuthToken:
         return datetime.datetime.now(tz=config.get_timezone()) + datetime.timedelta(days=config.REFRESH_TOKEN_TTL_DAYS)
 
     @staticmethod
-    def _create_token(jwt_type: str, user_id: uuid.UUID, expiration_time: datetime = None) -> str:
+    def _create_token(
+        jwt_type: str, user_id: uuid.UUID, role_name: str, group_id: int, expiration_time: datetime = None
+    ) -> str:
         if jwt_type not in ("access", "refresh"):
             raise TypeError("wrong type of token")
 
         headers = {"jwt_type": jwt_type}
-        payload = {"user_id": str(user_id)}
+        payload = {"user_id": str(user_id), "role_name": role_name, "group_id": group_id}
         if expiration_time is not None:
             payload.update({"exp": expiration_time})
 
@@ -43,12 +46,20 @@ class AuthToken:
 
         return jwt_token
 
-    def create_token_pair(self, user_id: uuid.UUID) -> Tuple:
+    def create_token_pair(self, user_id: uuid.UUID, role_name: str, group_id: int) -> Tuple:
         access_token = self._create_token(
-            jwt_type="access", user_id=user_id, expiration_time=self.get_access_token_expiration_time()
+            jwt_type="access",
+            user_id=user_id,
+            role_name=role_name,
+            group_id=group_id,
+            expiration_time=self.get_access_token_expiration_time(),
         )
         refresh_token = self._create_token(
-            jwt_type="refresh", user_id=user_id, expiration_time=self.get_refresh_token_expiration_time()
+            jwt_type="refresh",
+            user_id=user_id,
+            role_name=role_name,
+            group_id=group_id,
+            expiration_time=self.get_refresh_token_expiration_time(),
         )
 
         return access_token, refresh_token
@@ -68,7 +79,8 @@ class AuthToken:
         try:
             await redis_client.sadd("token_blacklist", token)
 
-        except redis.exceptions.ConnectionError:
+        except redis.exceptions.ConnectionError as e:
+            logger.error(e)
             return None
 
         return None
@@ -83,7 +95,8 @@ class AuthToken:
             if bytes(token, encoding="utf-8") in tokens:
                 raise TokenError("token in blacklist")
 
-        except redis.exceptions.ConnectionError:
+        except redis.exceptions.ConnectionError as e:
+            logger.error(e)
             return None
 
         return None
@@ -110,7 +123,11 @@ class AuthToken:
 
     async def refresh_token(self, refresh_token: str) -> Tuple:
         verified_token = await self.verify_token(refresh_token, jwt_type="refresh")
-        new_token_pair = self.create_token_pair(user_id=verified_token["user_id"])
+        new_token_pair = self.create_token_pair(
+            user_id=verified_token["user_id"],
+            role_name=verified_token["role_name"],
+            group_id=verified_token["group_id"],
+        )
 
         await self.add_token_to_blacklist(refresh_token)
 

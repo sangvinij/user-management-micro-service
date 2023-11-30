@@ -12,27 +12,40 @@ from user_management.config import config
 class TestToken:
     jwt_type = "access"
     user_id = uuid.uuid4()
+    role_name = "admin"
+    group_id = 1
+
     auth_token = AuthToken()
 
     def test_token_create(self):
-        token = self.auth_token._create_token(jwt_type=self.jwt_type, user_id=self.user_id)
+        token = self.auth_token._create_token(
+            jwt_type=self.jwt_type, user_id=self.user_id, role_name=self.role_name, group_id=self.group_id
+        )
 
         decoded_token = jwt.decode(jwt=token, key=config.SECRET_KEY, algorithms=[config.TOKEN_HASH_ALGORITHM])
 
         headers = jwt.get_unverified_header(token)
 
         assert decoded_token["user_id"] == str(self.user_id)
+        assert decoded_token["role_name"] == self.role_name
+        assert decoded_token["group_id"] == self.group_id
         assert headers["jwt_type"] == self.jwt_type
 
     def test_token_create_with_wrong_type(self):
         with pytest.raises(TypeError, match="wrong type of token"):
-            self.auth_token._create_token(jwt_type="wrong", user_id=self.user_id)
+            self.auth_token._create_token(
+                jwt_type="wrong", user_id=self.user_id, role_name=self.role_name, group_id=self.group_id
+            )
 
             assert False, "token's been created with a wrong type"
 
     def test_token_expiration_time(self):
         token = self.auth_token._create_token(
-            jwt_type=self.jwt_type, user_id=self.user_id, expiration_time=datetime.datetime.utcnow()
+            jwt_type=self.jwt_type,
+            user_id=self.user_id,
+            expiration_time=datetime.datetime.utcnow(),
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         with pytest.raises(jwt.exceptions.ExpiredSignatureError, match="Signature has expired"):
@@ -41,7 +54,11 @@ class TestToken:
             assert False, "token is valid despite of expiration time"
 
     def test_create_token_pair(self):
-        access_jwt, refresh_jwt = self.auth_token.create_token_pair(user_id=self.user_id)
+        access_jwt, refresh_jwt = self.auth_token.create_token_pair(
+            user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
+        )
 
         access_jwt_type = jwt.get_unverified_header(access_jwt)["jwt_type"]
         refresh_jwt_type = jwt.get_unverified_header(refresh_jwt)["jwt_type"]
@@ -54,6 +71,8 @@ class TestToken:
         token = self.auth_token._create_token(
             jwt_type=self.jwt_type,
             user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         await self.auth_token.add_token_to_blacklist(token, redis_client=fake_redis_client)
@@ -66,6 +85,8 @@ class TestToken:
         token = self.auth_token._create_token(
             jwt_type=self.jwt_type,
             user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         await fake_redis_client.sadd("token_blacklist", token)
@@ -79,6 +100,8 @@ class TestToken:
         token = self.auth_token._create_token(
             jwt_type=self.jwt_type,
             user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         verified_token = await self.auth_token.verify_token(token, jwt_type=self.jwt_type)
@@ -93,6 +116,8 @@ class TestToken:
         token = self.auth_token._create_token(
             jwt_type=self.jwt_type,
             user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         with pytest.raises(TokenError, match="invalid token type"):
@@ -104,6 +129,8 @@ class TestToken:
         token = self.auth_token._create_token(
             jwt_type=self.jwt_type,
             user_id=self.user_id,
+            role_name=self.role_name,
+            group_id=self.group_id,
         )
 
         with pytest.raises(TokenError, match="invalid token"):
