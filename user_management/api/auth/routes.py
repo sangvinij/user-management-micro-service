@@ -1,16 +1,18 @@
-from typing import Annotated
+from typing import Annotated, Dict
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+import aioboto3
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
 from user_management.api.utils.dependencies import security
+from user_management.aws.settings import get_aws_s3_client, get_aws_ses_client
 
 from ...database.models import User
 from ..utils.exceptions import TokenError
-from .schemas import LoginModel, SignupModel, SignupResponseModel
+from .schemas import LoginModel, ResetPasswordConfirmModel, ResetPasswordModel, SignupModel, SignupResponseModel
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -45,9 +47,33 @@ async def refresh(
 
 @auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    data: Annotated[SignupModel, Body()],
+    file: Annotated[UploadFile, File(...)],
+    data: Annotated[SignupModel, Depends(SignupModel.as_form)],
     service: Annotated[AuthService, Depends(AuthService)],
+    s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
 ):
-    created_user: User = await service.signup(data)
+    created_user: User = await service.signup(user=data, file=file, s3=s3)
 
     return created_user
+
+
+@auth_router.post("/reset_password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    service: Annotated[AuthService, Depends(AuthService)],
+    ses: Annotated[aioboto3.Session.client, Depends(get_aws_ses_client)],
+    request: Annotated[ResetPasswordModel, Body()],
+):
+    response: Dict = await service.reset_password(email=request.email, ses=ses)
+
+    return response
+
+
+@auth_router.post("/reset_password_confirm", status_code=status.HTTP_200_OK)
+async def reset_password_confirm(
+    service: Annotated[AuthService, Depends(AuthService)], request: Annotated[ResetPasswordConfirmModel, Body()]
+):
+    response = await service.reset_password_confirm(
+        token=request.token, password=request.password, password_retype=request.password_retype
+    )
+
+    return response

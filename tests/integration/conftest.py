@@ -1,4 +1,5 @@
 import asyncio
+import io
 import secrets
 import string
 from typing import AsyncGenerator, Dict
@@ -7,6 +8,7 @@ import httpx
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+from PIL import Image
 from sqlalchemy import delete, or_
 
 from tests.test_client import AuthTestClient, UserTestClient
@@ -71,6 +73,14 @@ def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool 
     password: str = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
     username: str = "test_".join(secrets.choice(string.ascii_lowercase) for _ in range(8))
     phone_number: str = "+37529" + "".join(secrets.choice(string.digits) for _ in range(7))
+
+    file: Image = Image.new("RGB", (100, 100), color="white")
+    file_stream: io.BytesIO = io.BytesIO()
+    file.save(file_stream, format="JPEG")
+    file_stream.seek(0)
+
+    file_bytes: bytes = file_stream.getvalue()
+
     return {
         "name": name,
         "surname": surname,
@@ -78,7 +88,7 @@ def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool 
         "password": password,
         "username": username,
         "phone_number": phone_number,
-        "image_s3_path": "stub_path",
+        "file": file_bytes,
         "group_id": group_id,
         "role_id": role_id,
         "is_blocked": is_blocked,
@@ -95,8 +105,9 @@ async def admin_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
     role_id: int = roles["admin_role"].role_id
 
     admin_data: Dict = generate_user_data(name="test_admin", role_id=role_id, group_id=group_id)
+    file = admin_data.pop("file")
 
-    signup_response: httpx.Response = await auth_client.signup(client=client, **admin_data)
+    signup_response: httpx.Response = await auth_client.signup(client=client, file=file, **admin_data)
     test_admin = signup_response.json()
 
     login_response = await auth_client.authenticate(
@@ -119,8 +130,9 @@ async def moderator_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict
     role_id: int = roles["moderator_role"].role_id
 
     moderator_data: Dict = generate_user_data(name="test_moderator", role_id=role_id, group_id=group_id)
+    file = moderator_data.pop("file")
 
-    signup_response: httpx.Response = await auth_client.signup(client=client, **moderator_data)
+    signup_response: httpx.Response = await auth_client.signup(client=client, file=file, **moderator_data)
     test_moderator = signup_response.json()
 
     login_response: httpx.Response = await auth_client.authenticate(
@@ -140,9 +152,12 @@ async def user_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
 
     group_id = groups["test_group"].group_id
     role_id = roles["user_role"].role_id
+
     data = generate_user_data(name="test_user", role_id=role_id, group_id=group_id)
 
-    signup_response: httpx.Response = await auth_client.signup(client=client, **data)
+    file = data.pop("file")
+
+    signup_response: httpx.Response = await auth_client.signup(client=client, file=file, **data)
     test_user: Dict = signup_response.json()
 
     login_response: httpx.Response = await auth_client.authenticate(
@@ -151,9 +166,6 @@ async def user_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
 
     user_access_token: str = login_response.json()["access_token"]
     user_refresh_token: str = login_response.json()["refresh_token"]
-
-    signup_response: httpx.Response = await auth_client.signup(client=client, **data)
-    test_user: signup_response.json()
 
     yield {
         "user": test_user,

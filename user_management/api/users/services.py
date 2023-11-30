@@ -1,14 +1,16 @@
 import uuid
 from typing import Dict, Optional
 
+import aioboto3
 import sqlalchemy.exc
+from fastapi import UploadFile
 
-from user_management.api.users.schemas import UserUpdateModel
 from user_management.api.utils.exceptions import (
     AlreadyExistsHTTPException,
     NotFoundHTTPException,
     PermissionHTTPException,
 )
+from user_management.aws.service import AWSService
 from user_management.database.models import User
 from user_management.managers.user_manager import UserManager
 
@@ -26,11 +28,18 @@ class UserService:
 
         return user
 
-    async def update_user(self, user_id: uuid.UUID, user_data: UserUpdateModel) -> User:
+    async def update_user(
+        self, user_id: uuid.UUID, user_data: Dict, s3: aioboto3.Session.client, file: Optional[UploadFile] = None
+    ) -> User:
+        if file:
+            aws_service: AWSService = AWSService(aws_client=s3)
+            user: User = await self.manager.get_by_id(user_id)
+            key: str = user_data["username"] if "username" in user_data else user.username
+            image_s3_path: str = await aws_service.upload_image(key=key, file=file)
+            user_data["image_s3_path"] = image_s3_path
+
         try:
-            updated_user: User = await self.manager.update_user(
-                user_id=user_id, user_data=user_data.model_dump(exclude_unset=True)
-            )
+            updated_user: User = await self.manager.update_user(user_id=user_id, user_data=user_data)
 
         except sqlalchemy.exc.IntegrityError:
             raise AlreadyExistsHTTPException(

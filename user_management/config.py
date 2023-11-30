@@ -1,6 +1,7 @@
 from typing import List
 
 import pytz
+from pydantic import EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +23,14 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     REDIS_HOST: str
     REDIS_DB_NUM: int
+    SOURCE_EMAIL: EmailStr
+    WEBAPP_HOST: str
+    LOCALSTACK_HOST: str
+    LOCALSTACK_PORT: int
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION_NAME: str
+    AWS_S3_BUCKET_NAME: str
 
     @property
     def db_url(self) -> str:
@@ -30,6 +39,10 @@ class Settings(BaseSettings):
     @property
     def redis_url(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB_NUM}"
+
+    @property
+    def localstack_url(self) -> str:
+        return f"{config.LOCALSTACK_HOST}:{config.LOCALSTACK_PORT}"
 
     def get_timezone(self):
         return pytz.timezone(self.TIMEZONE)

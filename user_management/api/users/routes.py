@@ -1,11 +1,13 @@
 import uuid
 from typing import Annotated, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+import aioboto3
+from fastapi import APIRouter, Depends, File, Path, Query, UploadFile, status
 
 from user_management.api.utils.dependencies import admin_or_moderator, admin_user, authenticated_user
 from user_management.database.models import User
 
+from ...aws.settings import get_aws_s3_client
 from .schemas import UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
 
@@ -21,9 +23,13 @@ async def me(user: Annotated[User, Depends(authenticated_user)]):
 async def update_me(
     user: Annotated[User, Depends(authenticated_user)],
     service: Annotated[UserService, Depends(UserService)],
-    data: Annotated[UserUpdateModel, Body()],
+    s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
+    data: Annotated[UserUpdateModel, Depends(UserUpdateModel.as_form)],
+    file: UploadFile = File(default=None),
 ):
-    updated_user: User = await service.update_user(user_id=user.user_id, user_data=data)
+    updated_user: User = await service.update_user(
+        user_id=user.user_id, file=file, user_data=data.model_dump(exclude_none=True), s3=s3
+    )
     return updated_user
 
 
@@ -52,9 +58,13 @@ async def one_user(
 async def update_one_user(
     user_id: Annotated[uuid.UUID, Path()],
     service: Annotated[UserService, Depends(UserService)],
-    data: Annotated[UserUpdateModel, Body()],
+    s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
+    data: Annotated[UserUpdateModel, Depends(UserUpdateModel.as_form)],
+    file: UploadFile = File(default=None),
 ):
-    user: User = await service.update_user(user_id=user_id, user_data=data)
+    user: User = await service.update_user(
+        user_id=user_id, file=file, user_data=data.model_dump(exclude_none=True), s3=s3
+    )
 
     return user
 
