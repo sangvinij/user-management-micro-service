@@ -25,7 +25,9 @@ async def login(
 ):
     user = await service.authenticate(username=form_data.username, password=form_data.password)
 
-    access_token, refresh_token = auth_token.create_token_pair(user_id=user.user_id)
+    access_token, refresh_token = auth_token.create_token_pair(
+        user_id=user.user_id, role_name=user.role.role_name, group_id=user.group_id
+    )
     response = LoginModel(access_token=access_token, refresh_token=refresh_token)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=response.model_dump())
