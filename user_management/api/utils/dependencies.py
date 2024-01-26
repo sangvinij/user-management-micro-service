@@ -19,7 +19,7 @@ async def authenticated_user(
     try:
         verified_token = await token_service.verify_token(token=access_token, jwt_type="access")
     except TokenError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
     user_id = verified_token["user_id"]
 
