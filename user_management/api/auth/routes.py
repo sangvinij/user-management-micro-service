@@ -25,8 +25,10 @@ async def login(
 ):
     user = await service.authenticate(username=form_data.username, password=form_data.password)
 
+    group_id: int = user.group_id if user.group_id is True else None
+
     access_token, refresh_token = auth_token.create_token_pair(
-        user_id=user.user_id, role_name=user.role.role_name, group_id=user.group_id
+        user_id=user.user_id, role_name=user.role, group_id=group_id
     )
     response = LoginModel(access_token=access_token, refresh_token=refresh_token)
 
@@ -49,10 +51,10 @@ async def refresh(
 
 @auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    file: Annotated[UploadFile, File(...)],
     data: Annotated[SignupModel, Depends(SignupModel.as_form)],
     service: Annotated[AuthService, Depends(AuthService)],
     s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
+    file: UploadFile = File(default=None),
 ):
     created_user: User = await service.signup(user=data, file=file, s3=s3)
 

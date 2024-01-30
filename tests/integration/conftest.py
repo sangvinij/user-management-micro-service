@@ -14,7 +14,7 @@ from sqlalchemy import delete, or_
 from tests.test_client import AuthTestClient, UserTestClient
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
-from user_management.database.models import Group, Role
+from user_management.database.models import Group
 
 
 @pytest.fixture(scope="package")
@@ -28,24 +28,6 @@ def event_loop():
 async def client() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(base_url=config.WEBAPP_TEST_HOST) as ac:
         yield ac
-
-
-@pytest_asyncio.fixture(scope="package")
-async def roles():
-    admin_role = Role(role_name="ADMIN")
-    moderator_role = Role(role_name="MODERATOR")
-    user_role = Role(role_name="USER")
-
-    async with async_session_maker() as session:
-        session.add_all((admin_role, moderator_role, user_role))
-        await session.commit()
-
-    yield {"admin_role": admin_role, "moderator_role": moderator_role, "user_role": user_role}
-
-    async with async_session_maker() as session:
-        stmt = delete(Role)
-        await session.execute(stmt)
-        await session.commit()
 
 
 @pytest_asyncio.fixture(scope="package")
@@ -67,7 +49,7 @@ async def groups():
         await session.commit()
 
 
-def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool = False) -> Dict:
+def generate_user_data(name: str, group_id: int, is_blocked: bool = False) -> Dict:
     surname: str = "test_" + "".join(secrets.choice(string.ascii_lowercase) for _ in range(6))
     email: str = "test." + "".join(secrets.choice(string.ascii_lowercase) for _ in range(6)) + "@example.com"
     password: str = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
@@ -90,50 +72,44 @@ def generate_user_data(name: str, group_id: int, role_id: int, is_blocked: bool 
         "phone_number": phone_number,
         "file": file_bytes,
         "group_id": group_id,
-        "role_id": role_id,
         "is_blocked": is_blocked,
     }
 
 
 @pytest_asyncio.fixture(scope="package")
-async def admin_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
+async def admin_data(groups: Dict, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()
 
-    group_id = groups["test_group"].group_id
-
-    role_id: int = roles["admin_role"].role_id
-
-    admin_data: Dict = generate_user_data(name="test_admin", role_id=role_id, group_id=group_id)
-    file = admin_data.pop("file")
-
-    signup_response: httpx.Response = await auth_client.signup(client=client, file=file, **admin_data)
-    test_admin = signup_response.json()
-
     login_response = await auth_client.authenticate(
-        username=admin_data["username"], password=admin_data["password"], client=client
+        username=config.ADMIN_USERNAME, password=config.ADMIN_PASSWORD, client=client
     )
-
     admin_access_token = login_response.json()["access_token"]
+    admin_data = await user_client.rud_current_user(action="read", token=admin_access_token, client=client)
 
-    yield {"admin": test_admin, "admin_token": admin_access_token}
-
-    await user_client.rud_current_user(action="delete", token=admin_access_token, client=client)
+    return {"admin": admin_data.json(), "admin_token": admin_access_token}
 
 
 @pytest_asyncio.fixture(scope="package")
-async def moderator_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
+async def moderator_data(groups: Dict, admin_data: Dict, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()
 
     group_id = groups["test_group"].group_id
-    role_id: int = roles["moderator_role"].role_id
 
-    moderator_data: Dict = generate_user_data(name="test_moderator", role_id=role_id, group_id=group_id)
+    moderator_data: Dict = generate_user_data(name="test_moderator", group_id=group_id)
     file = moderator_data.pop("file")
 
     signup_response: httpx.Response = await auth_client.signup(client=client, file=file, **moderator_data)
-    test_moderator = signup_response.json()
+
+    change_role_response: httpx.Response = await user_client.rud_specific_user(
+        action="update",
+        user_id=signup_response.json()["user_id"],
+        token=admin_data["admin_token"],
+        client=client,
+        role="MODERATOR",
+    )
+    test_moderator = change_role_response.json()
 
     login_response: httpx.Response = await auth_client.authenticate(
         username=moderator_data["username"], password=moderator_data["password"], client=client
@@ -146,14 +122,13 @@ async def moderator_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict
 
 
 @pytest_asyncio.fixture
-async def user_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
+async def user_data(groups: Dict, client: AsyncClient, admin_data: Dict) -> Dict:
     auth_client = AuthTestClient()
     user_client = UserTestClient()
 
     group_id = groups["test_group"].group_id
-    role_id = roles["user_role"].role_id
 
-    data = generate_user_data(name="test_user", role_id=role_id, group_id=group_id)
+    data = generate_user_data(name="test_user", group_id=group_id)
 
     file = data.pop("file")
 
@@ -174,4 +149,6 @@ async def user_data(roles: Dict, groups: Dict, client: AsyncClient) -> Dict:
         "password": data["password"],
     }
 
-    await user_client.rud_current_user(action="delete", token=user_access_token, client=client)
+    await user_client.rud_specific_user(
+        action="delete", user_id=test_user["user_id"], token=admin_data["admin_token"], client=client
+    )

@@ -8,7 +8,7 @@ from user_management.api.utils.dependencies import admin_or_moderator, admin_use
 from user_management.database.models import User
 
 from ...aws.settings import get_aws_s3_client
-from .schemas import UserListReadModel, UserReadModel, UserUpdateModel
+from .schemas import UserListReadModel, UserReadModel, UserUpdateModel, CurrentUserUpdateModel
 from .services import UserService
 
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])
@@ -24,7 +24,7 @@ async def update_me(
     user: Annotated[User, Depends(authenticated_user)],
     service: Annotated[UserService, Depends(UserService)],
     s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
-    data: Annotated[UserUpdateModel, Depends(UserUpdateModel.as_form)],
+    data: Annotated[CurrentUserUpdateModel, Depends(CurrentUserUpdateModel.as_form)],
     file: UploadFile = File(default=None),
 ):
     updated_user: User = await service.update_user(

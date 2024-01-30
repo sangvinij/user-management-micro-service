@@ -39,12 +39,13 @@ class TestUserRead:
     async def test_user_read_by_moderator(self, user_data: Dict, moderator_data: Dict, client: AsyncClient):
         user_id: uuid.UUID = user_data["user"]["user_id"]
         moderator_token: str = moderator_data["moderator_token"]
+        print(moderator_token)
 
         response: httpx.Response = await self.user_client.rud_specific_user(
             action="read", user_id=user_id, client=client, token=moderator_token
         )
 
-        assert moderator_data["moderator"]["group_id"] == user_data["user"]["group_id"]
+        assert moderator_data["moderator"]["group"]["group_id"] == user_data["user"]["group_id"]
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["user_id"] == user_id
 

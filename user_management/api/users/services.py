@@ -20,7 +20,7 @@ class UserService:
 
     async def read_one_user(self, user_id: uuid.UUID, authorized_user: User) -> User:
         user: User = await self.manager.get_by_id(user_id)
-        if authorized_user.role.role_name == "MODERATOR" and authorized_user.group_id != user.group_id:
+        if authorized_user.role == "MODERATOR" and authorized_user.group_id != user.group_id:
             raise PermissionHTTPException()
 
         if not user:
@@ -67,7 +67,7 @@ class UserService:
     ):
         offset: int = (page - 1) * limit
 
-        moderator: Optional[User] = authorized_user if authorized_user.role.role_name == "MODERATOR" else None
+        moderator: Optional[User] = authorized_user if authorized_user.role == "MODERATOR" else None
 
         result: Dict = await self.manager.get_all(
             limit=limit,

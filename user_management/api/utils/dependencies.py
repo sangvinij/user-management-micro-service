@@ -19,7 +19,7 @@ async def authenticated_user(
     try:
         verified_token = await token_service.verify_token(token=access_token, jwt_type="access")
     except TokenError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
     user_id = verified_token["user_id"]
 
@@ -43,7 +43,7 @@ async def admin_user(
         access_token=access_token, user_manager=user_manager, token_service=token_service
     )
 
-    if user.role.role_name != "ADMIN":
+    if user.role != "ADMIN":
         raise PermissionHTTPException()
 
     return user
@@ -58,7 +58,7 @@ async def admin_or_moderator(
         access_token=access_token, user_manager=user_manager, token_service=token_service
     )
 
-    if user.role.role_name not in ("ADMIN", "MODERATOR"):
+    if user.role not in ("ADMIN", "MODERATOR"):
         raise PermissionHTTPException()
 
     return user

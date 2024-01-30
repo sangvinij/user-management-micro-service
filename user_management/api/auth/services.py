@@ -15,6 +15,7 @@ from user_management.api.utils.hashers import PasswordHasher, ResetPasswordToken
 from user_management.aws.service import AWSService
 from user_management.config import config
 from user_management.database.models.user import User
+from user_management.logger_settings import logger
 from user_management.managers.user_manager import UserManager
 from user_management.redis_settings import get_redis_client
 
@@ -34,17 +35,18 @@ class AuthService:
 
         return user
 
-    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
+    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: Optional[UploadFile] = None) -> User:
         aws_service: AWSService = AWSService(aws_client=s3)
-        image_s3_path = await aws_service.upload_image(key=user.username, file=file)
+        user_data = user.model_dump(exclude_none=True, exclude_unset=True)
 
-        user_data = user.model_dump()
-
-        user_data["image_s3_path"] = image_s3_path
+        if file:
+            image_s3_path = await aws_service.upload_image(key=user.username, file=file)
+            user_data["image_s3_path"] = image_s3_path
 
         try:
             created_user: User = await self.manager.create_user(user_data=user_data)
-        except sqlalchemy.exc.IntegrityError:
+        except sqlalchemy.exc.IntegrityError as e:
+            logger.error(e)
             raise AlreadyExistsHTTPException(
                 detail="user with such credentials already exists",
             )
