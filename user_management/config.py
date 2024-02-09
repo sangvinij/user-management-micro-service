@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     ADMIN_PHONE_NUMBER: str
     ADMIN_EMAIL: EmailStr
 
+    RABBITMQ_USERNAME: str
+    RABBITMQ_PASSWORD: str
+
     @property
     def db_url(self) -> str:
         return f"{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

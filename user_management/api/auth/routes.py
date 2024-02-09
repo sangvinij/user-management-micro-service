@@ -13,6 +13,7 @@ from user_management.aws.settings import get_aws_s3_client, get_aws_ses_client
 from ...database.models import User
 from ..utils.exceptions import TokenError
 from .schemas import LoginModel, ResetPasswordConfirmModel, ResetPasswordModel, SignupModel, SignupResponseModel
+from ...rabbit.settings import PikaClient
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -64,10 +65,10 @@ async def create_user(
 @auth_router.post("/reset_password", status_code=status.HTTP_200_OK)
 async def reset_password(
     service: Annotated[AuthService, Depends(AuthService)],
-    ses: Annotated[aioboto3.Session.client, Depends(get_aws_ses_client)],
     request: Annotated[ResetPasswordModel, Body()],
+    rabbit_client: Annotated[PikaClient, Depends()]
 ):
-    response: Dict = await service.reset_password(email=request.email, ses=ses)
+    response: Dict = await service.reset_password(email=request.email, rabbit_client=rabbit_client)
 
     return response
 

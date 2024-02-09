@@ -59,6 +59,25 @@ services:
     networks:
       - user_management
 
+  rabbitmq:
+    container_name: user_management_rabbitmq
+    image: rabbitmq:3.12.12-management-alpine
+    networks:
+      - user_management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - .local/services/rabbitmq:/var/lib/rabbitmq
+      - .local/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    init: true
+    restart: always
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
   webapp:
     build:
       args:

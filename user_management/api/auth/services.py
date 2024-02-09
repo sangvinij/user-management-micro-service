@@ -17,6 +17,7 @@ from user_management.config import config
 from user_management.database.models.user import User
 from user_management.logger_settings import logger
 from user_management.managers.user_manager import UserManager
+from user_management.rabbit.settings import PikaClient
 from user_management.redis_settings import get_redis_client
 
 
@@ -69,8 +70,7 @@ class AuthService:
 
         await redis_client.set(token, str(user_id))
 
-    async def reset_password(self, email: EmailStr, ses: aioboto3.Session.client) -> Dict:
-        aws_service: AWSService = AWSService(aws_client=ses)
+    async def reset_password(self, email: EmailStr, rabbit_client: PikaClient) -> Dict:
         user: Optional[User] = await self.manager.get_by_email(email=email)
 
         token: str = self.generate_password_reset_token()
@@ -78,11 +78,11 @@ class AuthService:
         if user:
             await self.add_password_reset_token_to_redis(token=token, user_id=user.user_id)
 
-        reset_password_url: str = self.generate_password_reset_url(token=token)
+        reset_url: str = self.generate_password_reset_url(token=token)
 
-        await aws_service.send_mail(subject_text="Reset Password", message_text=reset_password_url, addresses=[email])
+        rabbit_client.publish_message(queue_name="testqueue", email=email, reset_url=reset_url)
 
-        return {"url": reset_password_url}
+        return {"detail": "link sent to email"}
 
     async def reset_password_confirm(self, token: str, password: str, password_retype: str) -> JSONResponse:
         redis_client: Redis = await get_redis_client().__anext__()
