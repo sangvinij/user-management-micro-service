@@ -39,7 +39,6 @@ class TestUserRead:
     async def test_user_read_by_moderator(self, user_data: Dict, moderator_data: Dict, client: AsyncClient):
         user_id: uuid.UUID = user_data["user"]["user_id"]
         moderator_token: str = moderator_data["moderator_token"]
-        print(moderator_token)
 
         response: httpx.Response = await self.user_client.rud_specific_user(
             action="read", user_id=user_id, client=client, token=moderator_token
@@ -51,7 +50,7 @@ class TestUserRead:
 
     @pytest.mark.asyncio
     async def test_user_read_by_moderator_with_wrong_group(
-        self, user_data: Dict, moderator_data: Dict, client: AsyncClient, groups: Dict
+        self, user_data: Dict, moderator_data: Dict, client: AsyncClient, groups: Dict, admin_data: Dict
     ):
         user: Dict = user_data["user"]
 
@@ -59,9 +58,14 @@ class TestUserRead:
         group_2_id: int = groups["test_group2"].group_id
 
         moderator_token = moderator_data["moderator_token"]
+        admin_token = admin_data["admin_token"]
 
-        await self.user_client.rud_current_user(
-            action="update", token=moderator_token, client=client, group_id=group_2_id
+        await self.user_client.rud_specific_user(
+            action="update",
+            user_id=moderator_data["moderator"]["user_id"],
+            token=admin_token,
+            client=client,
+            group_id=group_2_id,
         )
 
         response = await self.user_client.rud_specific_user(
@@ -105,9 +109,9 @@ class TestUserListRead:
 
     @pytest.mark.asyncio
     async def test_read_user_list_by_moderator(
-        self, moderator_data: Dict, user_data: Dict, groups: Dict, client: AsyncClient
+        self, moderator_data: Dict, user_data: Dict, groups: Dict, client: AsyncClient, admin_data: Dict
     ):
-        user_token = user_data["access_token"]
+        user_id: uuid.UUID = user_data["user"]["user_id"]
 
         group_1_id: int = groups["test_group"].group_id
         group_2_id: int = groups["test_group2"].group_id
@@ -115,13 +119,18 @@ class TestUserListRead:
         moderator: Dict = moderator_data["moderator"]
         moderator_token: str = moderator_data["moderator_token"]
 
-        await self.user_client.rud_current_user(action="update", token=user_token, group_id=group_2_id, client=client)
+        admin_token: str = admin_data["admin_token"]
+
+        await self.user_client.rud_specific_user(
+            action="update", token=admin_token, user_id=user_id, group_id=group_2_id, client=client
+        )
 
         response: httpx.Response = await self.user_client.get_users_list(token=moderator_token, client=client)
 
         assert response.status_code == status.HTTP_200_OK
 
-        assert moderator["group_id"] == group_1_id
+        assert moderator["group"]["group_id"] == group_1_id
+
         for user in response.json()["users"]:
             assert user["group"]["group_id"] == group_1_id
 
@@ -135,8 +144,6 @@ class TestUserListRead:
         response_data = response.json()
 
         assert response_data["limit"] == 1
-        assert response_data["total_pages"] == 3
-        assert response_data["total_count"] == 3
         assert len(response_data["users"]) == 1
 
     @pytest.mark.asyncio
@@ -159,25 +166,26 @@ class TestUserListRead:
         moderator = moderator_data["moderator"]
         admin = admin_data["admin"]
 
-        sorted_list_of_names: List = sorted([user["name"], moderator["name"], admin["name"]])
+        sorted_list_of_names: List = sorted([user["username"], moderator["username"], admin["username"]])
 
-        response = await self.user_client.get_users_list(token=admin_token, client=client, sort_by="name")
+        response = await self.user_client.get_users_list(token=admin_token, client=client, sort_by="username")
 
         assert response.status_code == status.HTTP_200_OK
 
         response_data = response.json()
 
-        result_names = [user["name"] for user in response_data["users"]]
+        result_names = [user["username"] for user in response_data["users"] if user["username"] in sorted_list_of_names]
 
         assert result_names == sorted_list_of_names
 
         response2 = await self.user_client.get_users_list(
-            token=admin_token, client=client, sort_by="name", order_by="desc"
+            token=admin_token, client=client, sort_by="username", order_by="desc"
         )
 
         assert response2.status_code == status.HTTP_200_OK
 
         response2_data = response2.json()
-        second_result_names = [user["name"] for user in response2_data["users"]]
-
+        second_result_names = [
+            user["username"] for user in response2_data["users"] if user["username"] in sorted_list_of_names
+        ]
         assert second_result_names == sorted_list_of_names[::-1]

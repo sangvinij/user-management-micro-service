@@ -12,6 +12,7 @@ from user_management.api.utils.exceptions import (
 )
 from user_management.aws.service import AWSService
 from user_management.database.models import User
+from user_management.logger_settings import logger
 from user_management.managers.user_manager import UserManager
 
 
@@ -20,7 +21,11 @@ class UserService:
 
     async def read_one_user(self, user_id: uuid.UUID, authorized_user: User) -> User:
         user: User = await self.manager.get_by_id(user_id)
-        if authorized_user.role == "MODERATOR" and authorized_user.group_id != user.group_id:
+        if (
+            authorized_user.role == "MODERATOR"
+            and authorized_user.group_id is not None
+            and authorized_user.group_id != user.group_id
+        ):
             raise PermissionHTTPException()
 
         if not user:
@@ -68,6 +73,9 @@ class UserService:
         offset: int = (page - 1) * limit
 
         moderator: Optional[User] = authorized_user if authorized_user.role == "MODERATOR" else None
+
+        if moderator and moderator.group_id is None:
+            moderator = None
 
         result: Dict = await self.manager.get_all(
             limit=limit,

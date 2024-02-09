@@ -1,4 +1,4 @@
-from typing import Annotated, Dict
+from typing import Annotated, Dict, Optional
 
 import aioboto3
 from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
@@ -25,7 +25,7 @@ async def login(
 ):
     user = await service.authenticate(username=form_data.username, password=form_data.password)
 
-    group_id: int = user.group_id if user.group_id is True else None
+    group_id: Optional[int] = user.group_id if user.group_id else None
 
     access_token, refresh_token = auth_token.create_token_pair(
         user_id=user.user_id, role_name=user.role, group_id=group_id

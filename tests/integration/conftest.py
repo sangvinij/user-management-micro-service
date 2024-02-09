@@ -90,7 +90,7 @@ async def admin_data(groups: Dict, client: AsyncClient) -> Dict:
     return {"admin": admin_data.json(), "admin_token": admin_access_token}
 
 
-@pytest_asyncio.fixture(scope="package")
+@pytest_asyncio.fixture(scope="function")
 async def moderator_data(groups: Dict, admin_data: Dict, client: AsyncClient) -> Dict:
     auth_client: AuthTestClient = AuthTestClient()
     user_client: UserTestClient = UserTestClient()
