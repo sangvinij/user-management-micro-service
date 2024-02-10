@@ -1,4 +1,4 @@
-FROM python:3.10.12-slim
+FROM python:3.12.1-slim
 ARG group
 
 ENV PYTHONDONTWRITEBYTECODE 1
