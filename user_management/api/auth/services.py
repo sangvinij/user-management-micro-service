@@ -72,6 +72,8 @@ class AuthService:
 
     async def reset_password(self, email: EmailStr, rabbit_client: PikaClient) -> Dict:
         user: Optional[User] = await self.manager.get_by_email(email=email)
+        if not user:
+            raise NotFoundHTTPException(detail="User not found")
 
         token: str = self.generate_password_reset_token()
 
@@ -82,7 +84,7 @@ class AuthService:
 
         rabbit_client.publish_message(queue_name="testqueue", email=email, reset_url=reset_url)
 
-        return {"detail": "link sent to email"}
+        return {"url": reset_url}
 
     async def reset_password_confirm(self, token: str, password: str, password_retype: str) -> JSONResponse:
         redis_client: Redis = await get_redis_client().__anext__()

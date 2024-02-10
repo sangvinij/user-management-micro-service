@@ -66,7 +66,7 @@ async def create_user(
 async def reset_password(
     service: Annotated[AuthService, Depends(AuthService)],
     request: Annotated[ResetPasswordModel, Body()],
-    rabbit_client: Annotated[PikaClient, Depends()]
+    rabbit_client: Annotated[PikaClient, Depends()],
 ):
     response: Dict = await service.reset_password(email=request.email, rabbit_client=rabbit_client)
 

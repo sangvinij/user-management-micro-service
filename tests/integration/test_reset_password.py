@@ -27,8 +27,8 @@ class TestResetPassword:
         email: EmailStr = "email@example.com"
         response: httpx.Response = await self.auth_client.reset_password(email=email, client=client)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert "url" in response.json()
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"detail": "User not found"}
 
     @pytest.mark.asyncio
     async def test_reset_password(self, user_data: Dict, client: httpx.AsyncClient):

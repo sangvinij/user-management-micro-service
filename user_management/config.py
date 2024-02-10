@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     RABBITMQ_USERNAME: str
     RABBITMQ_PASSWORD: str
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: str
 
     @property
     def db_url(self) -> str:

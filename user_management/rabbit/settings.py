@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from email import message
 from typing import Dict
 
 import pika
@@ -12,7 +11,6 @@ from user_management.logger_settings import logger
 
 
 class PikaClient:
-
     def __init__(self):
         self.connection = None
         self.channel = None
@@ -40,9 +38,11 @@ class PikaClient:
             properties: pika.BasicProperties = pika.BasicProperties(headers={"email": f"{email}"})
             body: Dict = {
                 "reset_url": reset_url,
-                "publish_datetime": datetime.now(tz=pytz.timezone(config.TIMEZONE))
+                "publish_datetime": datetime.now(tz=pytz.timezone(config.TIMEZONE)).isoformat(),
             }
-            self.channel.basic_publish(exchange='', routing_key=queue_name, body=json.dumps(message))
+            self.channel.basic_publish(
+                exchange="", routing_key=queue_name, body=json.dumps(body), properties=properties
+            )
         except AMQPConnectionError as e:
             logger.error(e)
 
