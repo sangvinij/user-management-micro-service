@@ -82,7 +82,7 @@ class AuthService:
 
         reset_url: str = self.generate_password_reset_url(token=token)
 
-        rabbit_client.publish_message(queue_name="testqueue", email=email, reset_url=reset_url)
+        rabbit_client.publish_message(queue_name=config.RABBITMQ_QUEUE, email=email, reset_url=reset_url)
 
         return {"url": reset_url}
 

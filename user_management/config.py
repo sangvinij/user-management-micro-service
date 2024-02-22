@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     RABBITMQ_PASSWORD: str
     RABBITMQ_HOST: str
     RABBITMQ_PORT: str
+    RABBITMQ_QUEUE: str
 
     @property
     def db_url(self) -> str:

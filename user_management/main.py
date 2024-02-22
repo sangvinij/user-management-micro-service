@@ -16,16 +16,14 @@ async def healthcheck():
     return JSONResponse(status_code=200, content={"status": "healthy"})
 
 
-origins = config.ALLOWED_HOSTS
-
 app.include_router(auth_router)
 app.include_router(user_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=config.ALLOWED_HOSTS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
