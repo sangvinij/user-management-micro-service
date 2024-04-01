@@ -8,10 +8,10 @@ from user_management.api.users.routes import user_router
 from user_management.config import config
 from user_management.logger_settings import logger
 
-app = FastAPI(docs_url="/")
+app = FastAPI(docs_url="/um")
 
 
-@app.get("/healthcheck")
+@app.get("/um/healthcheck")
 async def healthcheck():
     return JSONResponse(status_code=200, content={"status": "healthy"})
 
