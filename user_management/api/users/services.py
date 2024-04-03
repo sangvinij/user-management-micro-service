@@ -12,7 +12,6 @@ from user_management.api.utils.exceptions import (
 )
 from user_management.aws.service import AWSService
 from user_management.database.models import User
-from user_management.logger_settings import logger
 from user_management.managers.user_manager import UserManager
 
 

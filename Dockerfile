@@ -16,7 +16,8 @@ RUN poetry config virtualenvs.create false && \
 
 COPY . .
 
-RUN chmod +x scripts/entrypoint_webapp.sh
+RUN chown -R newuser:newuser . && \
+    chmod +x scripts/entrypoint_webapp.sh
 
 USER newuser
 

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from user_management.api.utils.hashers import PasswordHasher
 from user_management.config import config
 from user_management.database.db_settings import async_session_maker
-from user_management.database.models import Group, User
+from user_management.database.models import User
 from user_management.logger_settings import logger
 
 
