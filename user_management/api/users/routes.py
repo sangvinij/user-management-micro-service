@@ -8,7 +8,7 @@ from user_management.api.utils.dependencies import admin_or_moderator, admin_use
 from user_management.database.models import User
 
 from ...aws.settings import get_aws_s3_client
-from .schemas import UserListReadModel, UserReadModel, UserUpdateModel, CurrentUserUpdateModel
+from .schemas import CurrentUserUpdateModel, UserListReadModel, UserReadModel, UserUpdateModel
 from .services import UserService
 
 user_router: APIRouter = APIRouter(prefix="/user", tags=["User"])

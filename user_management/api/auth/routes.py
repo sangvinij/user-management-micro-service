@@ -8,12 +8,12 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
 from user_management.api.utils.dependencies import security
-from user_management.aws.settings import get_aws_s3_client, get_aws_ses_client
+from user_management.aws.settings import get_aws_s3_client
 
 from ...database.models import User
+from ...rabbit.settings import PikaClient
 from ..utils.exceptions import TokenError
 from .schemas import LoginModel, ResetPasswordConfirmModel, ResetPasswordModel, SignupModel, SignupResponseModel
-from ...rabbit.settings import PikaClient
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
