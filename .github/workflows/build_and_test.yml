@@ -28,6 +28,17 @@ env:
   AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
   SOURCE_EMAIL: ${{ secrets.SOURCE_EMAIL }}
 
+  ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+  ADMIN_PHONE_NUMBER: ${{ secrets.ADMIN_PHONE_NUMBER }}
+  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+
+  RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+  RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+  RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+  RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+  RABBITMQ_QUEUE: ${{ secrets.RABBITMQ_QUEUE }}
+
 jobs:
 
   build:
@@ -53,7 +64,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4.7.1
       with:
-        python-version: "3.10.12"
+        python-version: "3.12.2"
 
     - name: Setup Poetry
       uses: Gr1N/setup-poetry@v8

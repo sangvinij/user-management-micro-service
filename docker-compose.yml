@@ -83,7 +83,7 @@ services:
       args:
         - PIP_VERSION=${PIP_VERSION:-23.3.1}
         - POETRY_VERSION=${POETRY_VERSION:-1.6.1}
-        - PYTHON_VERSION=${PYTHON_VERSION:-3.12.1}
+        - PYTHON_VERSION=${PYTHON_VERSION:-3.12.2}
         - VERSION=${WEBAPP_VERSION:-dev}
       context: .
     container_name: user_management_webapp
