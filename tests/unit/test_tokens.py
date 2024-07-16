@@ -44,6 +44,7 @@ class TestToken:
             jwt_type=self.jwt_type,
             user_id=self.user_id,
             expiration_time=datetime.datetime.now(datetime.UTC),
+            expiration_time=datetime.datetime.utcnow(),
             role_name=self.role_name,
             group_id=self.group_id,
         )
