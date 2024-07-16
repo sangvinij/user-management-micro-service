@@ -1,4 +1,4 @@
-FROM python:3.10.12-slim
+FROM python:3.12.2-slim
 ARG group
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -16,7 +16,8 @@ RUN poetry config virtualenvs.create false && \
 
 COPY . .
 
-RUN chmod +x scripts/entrypoint_webapp.sh
+RUN chown -R newuser:newuser . && \
+    chmod +x scripts/entrypoint_webapp.sh
 
 USER newuser
 

@@ -1,6 +1,8 @@
+import contextlib
 from typing import List
 
 import aioboto3
+import botocore.errorfactory
 from fastapi import UploadFile
 from pydantic import EmailStr
 
@@ -34,7 +36,11 @@ class AWSService:
         return rs
 
     async def upload_image(self, file: UploadFile, key: str) -> str:
-        await self.aws_client.create_bucket(Bucket=config.AWS_S3_BUCKET_NAME)
+        with contextlib.suppress(botocore.errorfactory.ClientError):
+            await self.aws_client.create_bucket(
+                Bucket=config.AWS_S3_BUCKET_NAME,
+                CreateBucketConfiguration={"LocationConstraint": config.AWS_REGION_NAME},
+            )
 
         await self.aws_client.upload_fileobj(file, config.AWS_S3_BUCKET_NAME, key)
 

@@ -32,6 +32,17 @@ class Settings(BaseSettings):
     AWS_REGION_NAME: str
     AWS_S3_BUCKET_NAME: str
 
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
+    ADMIN_PHONE_NUMBER: str
+    ADMIN_EMAIL: EmailStr
+
+    RABBITMQ_USERNAME: str
+    RABBITMQ_PASSWORD: str
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: str
+    RABBITMQ_QUEUE: str
+
     @property
     def db_url(self) -> str:
         return f"{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

@@ -9,7 +9,7 @@
 * ***[Running tests](#running-tests)***
 
 ## Software versions
-- Python: 3.10.12
+- Python: 3.12.1
 - Pip: 23.3.1
 - Poetry: 1.6.1
 
@@ -35,7 +35,7 @@ To run this project, follow the steps below:
          docker compose up
 
 ### Run locally
-To run this project locally, first of all make sure that you have `python 3.10.12` installed on your machine. Then follow next steps:
+To run this project locally, first of all make sure that you have `python 3.12.1` installed on your machine. Then follow next steps:
 1. Make sure that you've got database available.
 2. Make steps 2 - 4 of the instruction [above](#run-via-docker-compose).
 

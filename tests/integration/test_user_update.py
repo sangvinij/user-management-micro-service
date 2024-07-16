@@ -48,14 +48,12 @@ class TestUserUpdate:
         assert failed_response.json() == {"detail": "insufficient permissions"}
 
     @pytest.mark.asyncio
-    async def test_update_user(self, user_data: Dict, client: AsyncClient, admin_data: Dict):
+    async def test_update_user(self, user_data: Dict, groups: Dict, client: AsyncClient, admin_data: Dict):
         admin_token: str = admin_data["admin_token"]
 
         user = user_data["user"]
 
-        update_data: Dict = generate_user_data(
-            name="test_updated_user", role_id=admin_data["admin"]["role_id"], group_id=admin_data["admin"]["group_id"]
-        )
+        update_data: Dict = generate_user_data(name="test_updated_user", group_id=groups["test_group2"].group_id)
         file: bytes = update_data.pop("file")
 
         response: httpx.Response = await self.user_client.rud_specific_user(
@@ -113,13 +111,11 @@ class TestUserUpdate:
         ).astimezone(pytz.utc)
 
     @pytest.mark.asyncio
-    async def test_update_current_user(self, user_data: Dict, client: AsyncClient, admin_data: Dict):
+    async def test_update_current_user(self, user_data: Dict, groups: Dict, client: AsyncClient, admin_data: Dict):
         access_token: str = user_data["access_token"]
         user = user_data["user"]
 
-        update_data: Dict = generate_user_data(
-            name="test_updated_user", role_id=admin_data["admin"]["role_id"], group_id=admin_data["admin"]["group_id"]
-        )
+        update_data: Dict = generate_user_data(name="test_updated_user", group_id=groups["test_group2"].group_id)
 
         file: bytes = update_data.pop("file")
 
@@ -144,3 +140,47 @@ class TestUserUpdate:
         assert updated_user.modified_at != datetime.datetime.strptime(
             user["modified_at"], "%Y-%m-%dT%H:%M:%S.%f%z"
         ).astimezone(pytz.utc)
+
+    @pytest.mark.asyncio
+    async def test_update_role_to_current_user(self, user_data: Dict, client: AsyncClient):
+        access_token: str = user_data["access_token"]
+
+        response: httpx.Response = await self.user_client.rud_current_user(
+            action="update", token=access_token, client=client, role="ADMIN"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["role"] == "USER"
+
+    @pytest.mark.asyncio
+    async def test_update_role_by_admin(self, user_data: Dict, admin_data: Dict, client: AsyncClient):
+        access_token: str = admin_data["admin_token"]
+
+        response: httpx.Response = await self.user_client.rud_specific_user(
+            user_id=user_data["user"]["user_id"], action="update", token=access_token, client=client, role="ADMIN"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["role"] == "ADMIN"
+
+    @pytest.mark.asyncio
+    async def test_block_current_user(self, user_data: Dict, client: AsyncClient):
+        access_token: str = user_data["access_token"]
+
+        response: httpx.Response = await self.user_client.rud_current_user(
+            action="update", token=access_token, client=client, is_blocked=True
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_blocked"] is False
+
+    @pytest.mark.asyncio
+    async def test_block_user_by_admin(self, user_data: Dict, admin_data: Dict, client: AsyncClient):
+        access_token: str = admin_data["admin_token"]
+
+        response: httpx.Response = await self.user_client.rud_specific_user(
+            user_id=user_data["user"]["user_id"], action="update", token=access_token, client=client, is_blocked=True
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_blocked"]

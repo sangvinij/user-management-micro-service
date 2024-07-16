@@ -15,7 +15,9 @@ from user_management.api.utils.hashers import PasswordHasher, ResetPasswordToken
 from user_management.aws.service import AWSService
 from user_management.config import config
 from user_management.database.models.user import User
+from user_management.logger_settings import logger
 from user_management.managers.user_manager import UserManager
+from user_management.rabbit.settings import PikaClient
 from user_management.redis_settings import get_redis_client
 
 
@@ -34,17 +36,18 @@ class AuthService:
 
         return user
 
-    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: UploadFile) -> User:
+    async def signup(self, user: SignupModel, s3: aioboto3.Session.client, file: Optional[UploadFile] = None) -> User:
         aws_service: AWSService = AWSService(aws_client=s3)
-        image_s3_path = await aws_service.upload_image(key=user.username, file=file)
+        user_data = user.model_dump(exclude_none=True, exclude_unset=True)
 
-        user_data = user.model_dump()
-
-        user_data["image_s3_path"] = image_s3_path
+        if file:
+            image_s3_path = await aws_service.upload_image(key=user.username, file=file)
+            user_data["image_s3_path"] = image_s3_path
 
         try:
             created_user: User = await self.manager.create_user(user_data=user_data)
-        except sqlalchemy.exc.IntegrityError:
+        except sqlalchemy.exc.IntegrityError as e:
+            logger.error(e)
             raise AlreadyExistsHTTPException(
                 detail="user with such credentials already exists",
             )
@@ -67,20 +70,21 @@ class AuthService:
 
         await redis_client.set(token, str(user_id))
 
-    async def reset_password(self, email: EmailStr, ses: aioboto3.Session.client) -> Dict:
-        aws_service: AWSService = AWSService(aws_client=ses)
+    async def reset_password(self, email: EmailStr, rabbit_client: PikaClient) -> Dict:
         user: Optional[User] = await self.manager.get_by_email(email=email)
+        if not user:
+            raise NotFoundHTTPException(detail="User not found")
 
         token: str = self.generate_password_reset_token()
 
         if user:
             await self.add_password_reset_token_to_redis(token=token, user_id=user.user_id)
 
-        reset_password_url: str = self.generate_password_reset_url(token=token)
+        reset_url: str = self.generate_password_reset_url(token=token)
 
-        await aws_service.send_mail(subject_text="Reset Password", message_text=reset_password_url, addresses=[email])
+        rabbit_client.publish_message(queue_name=config.RABBITMQ_QUEUE, email=email, reset_url=reset_url)
 
-        return {"url": reset_password_url}
+        return {"url": reset_url}
 
     async def reset_password_confirm(self, token: str, password: str, password_retype: str) -> JSONResponse:
         redis_client: Redis = await get_redis_client().__anext__()

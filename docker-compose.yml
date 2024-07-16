@@ -59,12 +59,31 @@ services:
     networks:
       - user_management
 
+  rabbitmq:
+    container_name: user_management_rabbitmq
+    image: rabbitmq:3.12.12-management-alpine
+    networks:
+      - user_management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - .local/services/rabbitmq:/var/lib/rabbitmq
+      - .local/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    init: true
+    restart: always
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
   webapp:
     build:
       args:
         - PIP_VERSION=${PIP_VERSION:-23.3.1}
         - POETRY_VERSION=${POETRY_VERSION:-1.6.1}
-        - PYTHON_VERSION=${PYTHON_VERSION:-3.10.12}
+        - PYTHON_VERSION=${PYTHON_VERSION:-3.12.2}
         - VERSION=${WEBAPP_VERSION:-dev}
       context: .
     container_name: user_management_webapp
@@ -76,13 +95,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .local/services/webapp:/app/:ro
+      - .:/project/
     init: true
+    restart: always
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
 
 networks:
   user_management:

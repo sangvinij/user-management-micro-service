@@ -1,4 +1,4 @@
-from typing import Annotated, Dict
+from typing import Annotated, Dict, Optional
 
 import aioboto3
 from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
@@ -8,9 +8,10 @@ from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from user_management.api.auth.services import AuthService
 from user_management.api.auth.tokens import AuthToken
 from user_management.api.utils.dependencies import security
-from user_management.aws.settings import get_aws_s3_client, get_aws_ses_client
+from user_management.aws.settings import get_aws_s3_client
 
 from ...database.models import User
+from ...rabbit.settings import PikaClient
 from ..utils.exceptions import TokenError
 from .schemas import LoginModel, ResetPasswordConfirmModel, ResetPasswordModel, SignupModel, SignupResponseModel
 
@@ -25,8 +26,10 @@ async def login(
 ):
     user = await service.authenticate(username=form_data.username, password=form_data.password)
 
+    group_id: Optional[int] = user.group_id if user.group_id else None
+
     access_token, refresh_token = auth_token.create_token_pair(
-        user_id=user.user_id, role_name=user.role.role_name, group_id=user.group_id
+        user_id=user.user_id, role_name=user.role, group_id=group_id
     )
     response = LoginModel(access_token=access_token, refresh_token=refresh_token)
 
@@ -49,10 +52,10 @@ async def refresh(
 
 @auth_router.post("/signup", response_model=SignupResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    file: Annotated[UploadFile, File(...)],
     data: Annotated[SignupModel, Depends(SignupModel.as_form)],
     service: Annotated[AuthService, Depends(AuthService)],
     s3: Annotated[aioboto3.Session.client, Depends(get_aws_s3_client)],
+    file: UploadFile = File(default=None),
 ):
     created_user: User = await service.signup(user=data, file=file, s3=s3)
 
@@ -62,10 +65,10 @@ async def create_user(
 @auth_router.post("/reset_password", status_code=status.HTTP_200_OK)
 async def reset_password(
     service: Annotated[AuthService, Depends(AuthService)],
-    ses: Annotated[aioboto3.Session.client, Depends(get_aws_ses_client)],
     request: Annotated[ResetPasswordModel, Body()],
+    rabbit_client: Annotated[PikaClient, Depends()],
 ):
-    response: Dict = await service.reset_password(email=request.email, ses=ses)
+    response: Dict = await service.reset_password(email=request.email, rabbit_client=rabbit_client)
 
     return response
 

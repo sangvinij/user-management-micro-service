@@ -46,7 +46,7 @@ class AuthToken:
 
         return jwt_token
 
-    def create_token_pair(self, user_id: uuid.UUID, role_name: str, group_id: int) -> Tuple:
+    def create_token_pair(self, user_id: uuid.UUID, role_name: str, group_id: Optional[int] = None) -> Tuple:
         access_token = self._create_token(
             jwt_type="access",
             user_id=user_id,
