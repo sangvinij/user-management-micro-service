@@ -1,0 +1,103 @@
+name: build_and_tests
+on: push
+
+env:
+  DB_ENGINE: ${{ secrets.DB_ENGINE }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  REDIS_DB_NUM: ${{ secrets.REDIS_DB_NUM }}
+
+  ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+  WEBAPP_TEST_HOST: ${{ secrets.WEBAPP_TEST_HOST }}
+
+  WEBAPP_HOST: ${{ secrets.WEBAPP_TEST_HOST }}
+
+  LOCALSTACK_HOST: ${{ secrets.LOCALSTACK_HOST }}
+  LOCALSTACK_PORT: ${{ secrets.LOCALSTACK_PORT }}
+
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION_NAME: ${{ secrets.AWS_REGION_NAME }}
+  AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+  SOURCE_EMAIL: ${{ secrets.SOURCE_EMAIL }}
+
+  ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+  ADMIN_PHONE_NUMBER: ${{ secrets.ADMIN_PHONE_NUMBER }}
+  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+
+  RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+  RABBITMQ_PORT: ${{ secrets.RABBITMQ_PORT }}
+  RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }}
+  RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+  RABBITMQ_QUEUE: ${{ secrets.RABBITMQ_QUEUE }}
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+
+    - name: Build image
+      run: docker build 
+        --build-arg PIP_VERSION=23.3.1 
+        --build-arg POETRY_VERSION=1.6.1 
+        --build-arg PYTHON_VERSION=3.10.12 
+        -t user_management_webapp:latest 
+        .
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+
+    - name: Setup Python
+      uses: actions/setup-python@v4.7.1
+      with:
+        python-version: "3.12.2"
+
+    - name: Setup Poetry
+      uses: Gr1N/setup-poetry@v8
+      with:
+        poetry-version: '1.6.1'
+
+    - name: Install requirements
+      run: poetry install --only dev
+
+    - name: Run linters
+      run: |
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8 .    
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.7.1
+        with:
+          python-version: "3.12.2"
+
+      - name: Setup Poetry
+        uses: Gr1N/setup-poetry@v8
+        with:
+          poetry-version: '1.6.1'
+
+      - name: Install requirements
+        run: poetry install
+
+      - name: Run tests
+        run: poetry run pytest tests/unit

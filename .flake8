@@ -1,0 +1,14 @@
+[flake8]
+ignore = Q000, S101, W503
+max-line-length = 120
+per-file-ignores =
+    __init__.py: F401
+    test_*.py: S105, S106
+
+exclude =
+    .artifacts
+    .git
+    .idea
+    .local
+    .venv
+    .vscode
