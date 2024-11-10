@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     RABBITMQ_PORT: str
     RABBITMQ_QUEUE: str
 
+    ELASTICSEARCH_HOST: str
+    ELASTICSEARCH_PORT: int
+
     @property
     def db_url(self) -> str:
         return f"{self.DB_ENGINE}://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

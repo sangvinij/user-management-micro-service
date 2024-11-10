@@ -102,6 +102,34 @@ services:
       db:
         condition: service_healthy
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.2
+    environment:
+      ES_JAVA_OPTS: "-Xmx384m -Xms384m"
+      discovery.type: single-node
+      network.host: 0.0.0.0
+      xpack.license.self_generated.type: basic
+
+      xpack.security.enabled: false
+      xpack.security.transport.ssl.enabled: false
+      xpack.security.http.ssl.enabled: false
+      ingest.geoip.downloader.enabled: false
+      cluster.routing.allocation.disk.threshold_enabled: false
+
+    ports:
+      - "9200:9200"
+    networks:
+      - user_management
+
+  kibana:
+    image: kibana:8.14.1
+    ports:
+      - "5601:5601"
+    networks:
+      - user_management
+    depends_on:
+      - elasticsearch
+
 networks:
   user_management:
     name: user_management_network
